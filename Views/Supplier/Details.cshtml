@@ -1,0 +1,169 @@
+@model FarmFlow.Web.Models.Supplier
+@{
+    ViewData["Title"] = "Supplier Details";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var orders = Model.PurchaseOrders?.ToList() ?? new List<FarmFlow.Web.Models.PurchaseOrder>();
+}
+
+<div class="page-header">
+    <div class="left">
+        <a href="/Supplier" class="btn-back">
+            <i class="fas fa-arrow-left"></i> Back
+        </a>
+        <h1><span class="icon">🏭</span> @Model.CompanyName</h1>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <a href="/Supplier/Edit/@Model.Id" class="btn-add" style="background:#ffc107;color:#212529;">
+            <i class="fas fa-edit"></i> Edit
+        </a>
+        <a href="/Supplier/Delete/@Model.Id" class="btn-add" style="background:#dc3545;">
+            <i class="fas fa-trash"></i> Delete
+        </a>
+    </div>
+</div>
+
+<!-- KPI Cards -->
+<div class="kpi-grid">
+    <div class="kpi-card">
+        <span class="kpi-icon"><i class="fas fa-file-invoice"></i></span>
+        <div class="kpi-label">Total POs</div>
+        <div class="kpi-value">@orders.Count</div>
+        <div class="kpi-change positive">All Time</div>
+    </div>
+    <div class="kpi-card" style="border-left-color:var(--secondary);">
+        <span class="kpi-icon" style="color:var(--secondary);"><i class="fas fa-money-bill-wave"></i></span>
+        <div class="kpi-label">Total Value</div>
+        <div class="kpi-value">₱@orders.Sum(o => o.TotalAmount ?? 0).ToString("N0")</div>
+        <div class="kpi-change positive">Purchases</div>
+    </div>
+    <div class="kpi-card" style="border-left-color:#f4a261;">
+        <span class="kpi-icon" style="color:#f4a261;"><i class="fas fa-star"></i></span>
+        <div class="kpi-label">Rating</div>
+        <div class="kpi-value">@(Model.PerformanceRating?.ToString("N1") ?? "-")</div>
+        <div class="kpi-change positive">Out of 5.0</div>
+    </div>
+    <div class="kpi-card" style="border-left-color:var(--primary-light);">
+        <span class="kpi-icon" style="color:var(--primary-light);"><i class="fas fa-credit-card"></i></span>
+        <div class="kpi-label">Credit Limit</div>
+        <div class="kpi-value">₱@(Model.CreditLimit?.ToString("N0") ?? "0")</div>
+        <div class="kpi-change positive">Available</div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-lg-6">
+        <div class="card-custom">
+            <div class="card-header-custom">
+                <h5><i class="fas fa-info-circle" style="color:var(--primary);margin-right:8px;"></i> Company Information</h5>
+            </div>
+            <div style="padding:10px 0;">
+                <div style="display:flex;padding:8px 0;border-bottom:1px solid #f0f4f0;">
+                    <span style="font-weight:600;width:150px;color:var(--text-muted);">Supplier Code:</span>
+                    <span><span class="badge-status info">@Model.SupplierCode</span></span>
+                </div>
+                <div style="display:flex;padding:8px 0;border-bottom:1px solid #f0f4f0;">
+                    <span style="font-weight:600;width:150px;color:var(--text-muted);">Company Name:</span>
+                    <span><strong>@Model.CompanyName</strong></span>
+                </div>
+                <div style="display:flex;padding:8px 0;border-bottom:1px solid #f0f4f0;">
+                    <span style="font-weight:600;width:150px;color:var(--text-muted);">Address:</span>
+                    <span>@(Model.Address ?? "-")</span>
+                </div>
+                <div style="display:flex;padding:8px 0;border-bottom:1px solid #f0f4f0;">
+                    <span style="font-weight:600;width:150px;color:var(--text-muted);">Tax ID:</span>
+                    <span>@(Model.TaxId ?? "-")</span>
+                </div>
+                <div style="display:flex;padding:8px 0;">
+                    <span style="font-weight:600;width:150px;color:var(--text-muted);">Status:</span>
+                    <span>
+                        @if (Model.IsActive)
+                        {
+                            <span class="badge-status active">Active</span>
+                        }
+                        else
+                        {
+                            <span class="badge-status inactive">Inactive</span>
+                        }
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card-custom">
+            <div class="card-header-custom">
+                <h5><i class="fas fa-user" style="color:var(--secondary);margin-right:8px;"></i> Contact & Terms</h5>
+            </div>
+            <div style="padding:10px 0;">
+                <div style="display:flex;padding:8px 0;border-bottom:1px solid #f0f4f0;">
+                    <span style="font-weight:600;width:150px;color:var(--text-muted);">Contact Person:</span>
+                    <span>@(Model.ContactPerson ?? "-")</span>
+                </div>
+                <div style="display:flex;padding:8px 0;border-bottom:1px solid #f0f4f0;">
+                    <span style="font-weight:600;width:150px;color:var(--text-muted);">Email:</span>
+                    <span>@(Model.ContactEmail ?? "-")</span>
+                </div>
+                <div style="display:flex;padding:8px 0;border-bottom:1px solid #f0f4f0;">
+                    <span style="font-weight:600;width:150px;color:var(--text-muted);">Phone:</span>
+                    <span>@(Model.ContactPhone ?? "-")</span>
+                </div>
+                <div style="display:flex;padding:8px 0;border-bottom:1px solid #f0f4f0;">
+                    <span style="font-weight:600;width:150px;color:var(--text-muted);">Payment Terms:</span>
+                    <span>@(Model.PaymentTerms ?? "-")</span>
+                </div>
+                <div style="display:flex;padding:8px 0;">
+                    <span style="font-weight:600;width:150px;color:var(--text-muted);">Notes:</span>
+                    <span>@(Model.Notes ?? "-")</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Purchase Orders -->
+<div class="card-custom">
+    <div class="card-header-custom">
+        <h5><i class="fas fa-file-invoice" style="color:var(--primary);margin-right:8px;"></i> Purchase Orders</h5>
+    </div>
+    <div class="table-wrapper">
+        <table class="table-custom">
+            <thead>
+                <tr>
+                    <th>PO Number</th>
+                    <th>Order Date</th>
+                    <th>Expected Delivery</th>
+                    <th>Total Amount</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (orders.Any())
+                {
+                    foreach (var po in orders.OrderByDescending(o => o.OrderDate))
+                    {
+                        <tr>
+                            <td><strong>@po.PONumber</strong></td>
+                            <td>@po.OrderDate.ToString("MMM dd, yyyy")</td>
+                            <td>@(po.DeliveryExpectedDate?.ToString("MMM dd, yyyy") ?? "-")</td>
+                            <td><strong>₱@(po.TotalAmount?.ToString("N2") ?? "0.00")</strong></td>
+                            <td><span class="badge-status info">@po.Status</span></td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="5">
+                            <div class="empty-state">
+                                <i class="fas fa-file-invoice"></i>
+                                <h4>No Purchase Orders</h4>
+                                <p>This supplier has no purchase orders yet.</p>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

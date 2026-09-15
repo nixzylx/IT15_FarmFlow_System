@@ -1,0 +1,165 @@
+@model IEnumerable<FarmFlow.Web.Models.User>
+@{
+    ViewData["Title"] = "User Management";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var users = Model.ToList();
+}
+
+<!-- Header -->
+<div class="page-header">
+    <div class="left">
+        <h1><span class="icon">👥</span> User Management</h1>
+        <span class="badge-status warning" style="padding:5px 14px;">Admin Only</span>
+    </div>
+    <a href="/UserManagement/Create" class="btn-add">
+        <i class="fas fa-plus"></i> Add User
+    </a>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert-success-custom">
+        <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
+    </div>
+}
+
+<!-- KPI Cards -->
+<div class="kpi-grid">
+    <div class="kpi-card">
+        <span class="kpi-icon"><i class="fas fa-users"></i></span>
+        <div class="kpi-label">Total Users</div>
+        <div class="kpi-value">@users.Count</div>
+        <div class="kpi-change positive"><i class="fas fa-arrow-up"></i> Registered</div>
+    </div>
+    <div class="kpi-card" style="border-left-color:var(--primary-light);">
+        <span class="kpi-icon" style="color:var(--primary-light);"><i class="fas fa-check-circle"></i></span>
+        <div class="kpi-label">Active Users</div>
+        <div class="kpi-value">@users.Count(u => u.IsActive)</div>
+        <div class="kpi-change positive"><i class="fas fa-user-check"></i> Can Login</div>
+    </div>
+    <div class="kpi-card" style="border-left-color:#f4a261;">
+        <span class="kpi-icon" style="color:#f4a261;"><i class="fas fa-user-slash"></i></span>
+        <div class="kpi-label">Inactive Users</div>
+        <div class="kpi-value">@users.Count(u => !u.IsActive)</div>
+        <div class="kpi-change negative">Disabled</div>
+    </div>
+    <div class="kpi-card" style="border-left-color:var(--secondary);">
+        <span class="kpi-icon" style="color:var(--secondary);"><i class="fas fa-user-tag"></i></span>
+        <div class="kpi-label">Roles</div>
+        <div class="kpi-value">@users.Select(u => u.RoleId).Distinct().Count()</div>
+        <div class="kpi-change positive">Active Roles</div>
+    </div>
+</div>
+
+<!-- Filter Card -->
+<div class="card-custom mb-4">
+    <form method="get" asp-action="Index" style="display:flex;gap:12px;flex-wrap:wrap;align-items:end;">
+        <div style="flex:1;min-width:200px;">
+            <label style="font-size:13px;font-weight:600;display:block;margin-bottom:5px;">Search</label>
+            <div class="input-wrapper">
+                <i class="fas fa-search icon"></i>
+                <input type="text" name="searchTerm" value="@ViewBag.SearchTerm" placeholder="Search by name, username, or email..." />
+            </div>
+        </div>
+        <div style="min-width:180px;">
+            <label style="font-size:13px;font-weight:600;display:block;margin-bottom:5px;">Role</label>
+            <div class="input-wrapper">
+                <i class="fas fa-user-tag icon"></i>
+                <select name="roleId">
+                    <option value="">All Roles</option>
+                    @if (ViewBag.Roles != null)
+                    {
+                        foreach (var role in ViewBag.Roles)
+                        {
+                            <option value="@role.Id" selected="@(ViewBag.RoleId == role.Id)">@role.Name</option>
+                        }
+                    }
+                </select>
+            </div>
+        </div>
+        <div style="display:flex;gap:8px;">
+            <button type="submit" class="btn-add">
+                <i class="fas fa-search"></i> Filter
+            </button>
+            <a href="/UserManagement" class="btn-back">
+                <i class="fas fa-redo"></i> Reset
+            </a>
+        </div>
+    </form>
+</div>
+
+<!-- Table -->
+<div class="card-custom">
+    <div class="table-wrapper">
+        <table class="table-custom">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Username</th>
+                    <th>Full Name</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th style="text-align:center;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (users.Any())
+                {
+                    foreach (var user in users)
+                    {
+                        <tr>
+                            <td>@user.Id</td>
+                            <td><strong>@user.Username</strong></td>
+                            <td>@user.FirstName @user.LastName</td>
+                            <td>@user.Email</td>
+                            <td>
+                                @if (user.Role != null)
+                                {
+                                    <span class="badge-status primary">@user.Role.Name</span>
+                                }
+                                else
+                                {
+                                    <span style="color:var(--text-muted);">-</span>
+                                }
+                            </td>
+                            <td>
+                                @if (user.IsActive)
+                                {
+                                    <span class="badge-status active">Active</span>
+                                }
+                                else
+                                {
+                                    <span class="badge-status inactive">Inactive</span>
+                                }
+                            </td>
+                            <td style="text-align:center;white-space:nowrap;">
+                                <a href="/UserManagement/Edit/@user.Id" class="btn-add" style="padding:5px 12px;font-size:13px;background:#ffc107;color:#212529;" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="/UserManagement/Delete/@user.Id" class="btn-add" style="padding:5px 12px;font-size:13px;background:#dc3545;" title="Delete">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="7">
+                            <div class="empty-state">
+                                <i class="fas fa-users"></i>
+                                <h4>No Users Found</h4>
+                                <p>Click "Add User" to create your first user.</p>
+                                <a href="/UserManagement/Create" class="btn-add" style="margin-top:12px;display:inline-flex;padding:8px 20px;font-size:13px;">
+                                    <i class="fas fa-plus"></i> Add First User
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

@@ -1,0 +1,106 @@
+@model FarmFlow.Web.Models.Supplier
+@{
+    ViewData["Title"] = "Delete Supplier";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var poCount = Model?.PurchaseOrders?.Count ?? 0;
+}
+
+<div class="page-header">
+    <div class="left">
+        <a href="/Supplier" class="btn-back">
+            <i class="fas fa-arrow-left"></i> Back
+        </a>
+        <h1><span class="icon">⚠️</span> Delete Supplier</h1>
+    </div>
+</div>
+
+<div class="card-custom" style="max-width:600px;margin:0 auto;text-align:center;">
+    <span style="font-size:64px;display:block;color:#dc3545;margin-bottom:15px;">⚠️</span>
+    <h3 style="color:#dc3545;font-weight:700;">Delete Supplier</h3>
+    <p style="color:var(--text-muted);margin-bottom:25px;">This action cannot be undone.</p>
+
+    @if (poCount > 0)
+    {
+        <div class="alert-danger-custom" style="justify-content:center;text-align:left;">
+            <i class="fas fa-exclamation-triangle"></i>
+            <div>
+                <strong>Warning!</strong> This supplier has <strong>@poCount purchase order(s)</strong> associated with it.
+                Deleting may fail or affect related records.
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="alert-danger-custom" style="background:#fff3cd;color:#856404;border-left-color:#f4a261;justify-content:center;">
+            <i class="fas fa-exclamation-triangle"></i>
+            Deleting this supplier will permanently remove it from the system.
+        </div>
+    }
+
+    <!-- Supplier Details -->
+    <div style="background:#f8f9fa;padding:20px;border-radius:12px;margin-bottom:25px;text-align:left;">
+        <div style="display:flex;padding:8px 0;border-bottom:1px solid #e9ecef;">
+            <span style="font-weight:600;width:140px;color:var(--text-muted);">Supplier Code:</span>
+            <span><span class="badge-status info">@Model?.SupplierCode</span></span>
+        </div>
+        <div style="display:flex;padding:8px 0;border-bottom:1px solid #e9ecef;">
+            <span style="font-weight:600;width:140px;color:var(--text-muted);">Company:</span>
+            <span><strong>@Model?.CompanyName</strong></span>
+        </div>
+        <div style="display:flex;padding:8px 0;border-bottom:1px solid #e9ecef;">
+            <span style="font-weight:600;width:140px;color:var(--text-muted);">Contact Person:</span>
+            <span>@(Model?.ContactPerson ?? "-")</span>
+        </div>
+        <div style="display:flex;padding:8px 0;border-bottom:1px solid #e9ecef;">
+            <span style="font-weight:600;width:140px;color:var(--text-muted);">Email:</span>
+            <span>@(Model?.ContactEmail ?? "-")</span>
+        </div>
+        <div style="display:flex;padding:8px 0;border-bottom:1px solid #e9ecef;">
+            <span style="font-weight:600;width:140px;color:var(--text-muted);">Phone:</span>
+            <span>@(Model?.ContactPhone ?? "-")</span>
+        </div>
+        <div style="display:flex;padding:8px 0;border-bottom:1px solid #e9ecef;">
+            <span style="font-weight:600;width:140px;color:var(--text-muted);">Payment Terms:</span>
+            <span>@(Model?.PaymentTerms ?? "-")</span>
+        </div>
+        <div style="display:flex;padding:8px 0;border-bottom:1px solid #e9ecef;">
+            <span style="font-weight:600;width:140px;color:var(--text-muted);">Rating:</span>
+            <span>
+                @if (Model?.PerformanceRating.HasValue == true)
+                {
+                    <span style="color:#f4a261;font-weight:700;">★ @Model.PerformanceRating.Value.ToString("N1")</span>
+                }
+                else
+                {
+                    <span>-</span>
+                }
+            </span>
+        </div>
+        <div style="display:flex;padding:8px 0;">
+            <span style="font-weight:600;width:140px;color:var(--text-muted);">Status:</span>
+            <span>
+                @if (Model?.IsActive == true)
+                {
+                    <span class="badge-status active">Active</span>
+                }
+                else
+                {
+                    <span class="badge-status inactive">Inactive</span>
+                }
+            </span>
+        </div>
+    </div>
+
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+        <form method="post" asp-action="Delete">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" value="@Model?.Id" />
+            <button type="submit" class="btn-add" style="background:#dc3545;padding:12px 30px;font-size:16px;">
+                <i class="fas fa-trash"></i> Yes, Delete
+            </button>
+        </form>
+        <a href="/Supplier" class="btn-cancel">
+            <i class="fas fa-times"></i> Cancel
+        </a>
+    </div>
+</div>

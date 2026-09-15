@@ -1,0 +1,66 @@
+@{
+    ViewData["Title"] = "Access Denied - FarmFlow";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a472a 0%, #2d6a4f 40%, #40916c 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            max-width: 500px;
+            background: white;
+            border-radius: 24px;
+            padding: 50px 40px;
+            text-align: center;
+            box-shadow: 0 25px 70px rgba(0,0,0,0.4);
+            animation: slideUp 0.6s ease-out;
+        }
+        @@keyframes slideUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .icon { font-size: 72px; display: block; margin-bottom: 20px; }
+        h1 { color: #dc3545; font-size: 28px; margin-bottom: 10px; }
+        p { color: #666; font-size: 16px; margin-bottom: 25px; }
+        .btn-primary {
+            display: inline-block;
+            padding: 12px 30px;
+            background: #1a472a;
+            color: white;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            background: #2d6a4f;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <span class="icon">🚫</span>
+        <h1>Access Denied</h1>
+        <p>You don't have permission to access this page. Please contact your administrator.</p>
+        <a href="/Dashboard" class="btn-primary">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+</body>
+</html>

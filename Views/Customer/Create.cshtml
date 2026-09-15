@@ -1,0 +1,195 @@
+@model FarmFlow.Web.Models.Customer
+@{
+    ViewData["Title"] = "Add Customer";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var salesReps = ViewBag.SalesReps as List<FarmFlow.Web.Models.User>;
+}
+
+<div class="page-header">
+    <div class="left">
+        <a href="/Customer" class="btn-back"><i class="fas fa-arrow-left"></i> Back</a>
+        <h1><span class="icon">➕</span> Add Customer</h1>
+    </div>
+</div>
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="validation-summary">
+        <ul>
+            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+            {
+                <li>@error.ErrorMessage</li>
+            }
+        </ul>
+    </div>
+}
+
+<div class="card-custom" style="max-width:900px;margin:0 auto;">
+    <div class="card-header-custom" style="margin-bottom:20px;">
+        <h5><i class="fas fa-info-circle" style="color:var(--primary);margin-right:8px;"></i> Customer Information</h5>
+    </div>
+
+    <form method="post" asp-action="Create">
+        @Html.AntiForgeryToken()
+
+        <div class="form-row-custom">
+            <div class="form-group-custom">
+                <label>Customer Code <span class="required">*</span></label>
+                <div class="input-wrapper">
+                    <i class="fas fa-barcode icon"></i>
+                    <input type="text" name="CustomerCode" value="@Model?.CustomerCode" placeholder="e.g., CUST-001" required />
+                </div>
+            </div>
+            <div class="form-group-custom">
+                <label>Customer Type</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-tag icon"></i>
+                    <select name="CustomerType">
+                        <option value="">Select Type...</option>
+                        <option value="Wholesaler" selected="@(Model?.CustomerType == "Wholesaler")">Wholesaler</option>
+                        <option value="Retailer" selected="@(Model?.CustomerType == "Retailer")">Retailer</option>
+                        <option value="Exporter" selected="@(Model?.CustomerType == "Exporter")">Exporter</option>
+                        <option value="Individual" selected="@(Model?.CustomerType == "Individual")">Individual</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group-custom">
+            <label>Company Name</label>
+            <div class="input-wrapper">
+                <i class="fas fa-building icon"></i>
+                <input type="text" name="CompanyName" value="@Model?.CompanyName" placeholder="e.g., Green Harvest Inc." />
+            </div>
+        </div>
+
+        <div class="form-row-custom">
+            <div class="form-group-custom">
+                <label>First Name</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-user icon"></i>
+                    <input type="text" name="FirstName" value="@Model?.FirstName" />
+                </div>
+            </div>
+            <div class="form-group-custom">
+                <label>Last Name</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-user icon"></i>
+                    <input type="text" name="LastName" value="@Model?.LastName" />
+                </div>
+            </div>
+        </div>
+
+        <div class="form-row-custom">
+            <div class="form-group-custom">
+                <label>Email</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-envelope icon"></i>
+                    <input type="email" name="Email" value="@Model?.Email" />
+                </div>
+            </div>
+            <div class="form-group-custom">
+                <label>Phone</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-phone icon"></i>
+                    <input type="text" name="PhoneNumber" value="@Model?.PhoneNumber" />
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group-custom">
+            <label>Address</label>
+            <div class="input-wrapper">
+                <i class="fas fa-map-marker-alt icon"></i>
+                <input type="text" name="Address" value="@Model?.Address" />
+            </div>
+        </div>
+
+        <div class="card-header-custom" style="margin-bottom:20px;margin-top:30px;">
+            <h5><i class="fas fa-file-invoice-dollar" style="color:var(--secondary);margin-right:8px;"></i> Business Terms</h5>
+        </div>
+
+        <div class="form-row-custom">
+            <div class="form-group-custom">
+                <label>Credit Limit (₱)</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-money-bill-wave icon"></i>
+                    <input type="number" name="CreditLimit" value="@Model?.CreditLimit" step="0.01" />
+                </div>
+            </div>
+            <div class="form-group-custom">
+                <label>Payment Terms</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-handshake icon"></i>
+                    <select name="PaymentTerms">
+                        <option value="">Select Terms...</option>
+                        <option value="Net 15" selected="@(Model?.PaymentTerms == "Net 15")">Net 15</option>
+                        <option value="Net 30" selected="@(Model?.PaymentTerms == "Net 30")">Net 30</option>
+                        <option value="Net 60" selected="@(Model?.PaymentTerms == "Net 60")">Net 60</option>
+                        <option value="COD" selected="@(Model?.PaymentTerms == "COD")">COD</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-row-custom">
+            <div class="form-group-custom">
+                <label>Discount Tier</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-crown icon"></i>
+                    <select name="DiscountTier">
+                        <option value="">Select Tier...</option>
+                        <option value="Gold" selected="@(Model?.DiscountTier == "Gold")">Gold</option>
+                        <option value="Silver" selected="@(Model?.DiscountTier == "Silver")">Silver</option>
+                        <option value="Bronze" selected="@(Model?.DiscountTier == "Bronze")">Bronze</option>
+                        <option value="Regular" selected="@(Model?.DiscountTier == "Regular")">Regular</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group-custom">
+                <label>Assigned Sales Rep</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-user-tie icon"></i>
+                    <select name="AssignedSalesRepId">
+                        <option value="">Select Sales Rep...</option>
+                        @if (salesReps != null)
+                        {
+                            foreach (var rep in salesReps)
+                            {
+                                <option value="@rep.Id" selected="@(Model?.AssignedSalesRepId == rep.Id)">@rep.FirstName @rep.LastName (@rep.Username)</option>
+                            }
+                        }
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group-custom">
+            <label>Tax ID</label>
+            <div class="input-wrapper">
+                <i class="fas fa-id-card icon"></i>
+                <input type="text" name="TaxId" value="@Model?.TaxId" />
+            </div>
+        </div>
+
+        <div class="form-group-custom">
+            <label>Notes</label>
+            <div class="input-wrapper">
+                <i class="fas fa-comment icon"></i>
+                <input type="text" name="Notes" value="@Model?.Notes" />
+            </div>
+        </div>
+
+        <div class="form-group-custom">
+            <div class="checkbox-group">
+                <input type="checkbox" id="IsActive" name="IsActive" value="true" checked />
+                <label for="IsActive">Active Customer</label>
+            </div>
+        </div>
+
+        <div style="display:flex;gap:12px;margin-top:25px;flex-wrap:wrap;">
+            <button type="submit" class="btn-submit"><i class="fas fa-save"></i> Create Customer</button>
+            <a href="/Customer" class="btn-cancel"><i class="fas fa-times"></i> Cancel</a>
+        </div>
+    </form>
+</div>

@@ -1,0 +1,61 @@
+# ============================================
+# FARMFLOW .gitignore
+# ============================================
+
+# .NET Core Build Output
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.cache
+*.pdb
+
+# Visual Studio
+.vs/
+.vscode/
+*.swp
+*.swo
+*~
+
+# NuGet Packages
+packages/
+*.nupkg
+*.snupkg
+
+# User Secrets
+secrets.json
+appsettings.Development.json
+
+# Build Results
+[Dd]ebug/
+[Rr]elease/
+[Bb]in/
+[Oo]bj/
+x64/
+x86/
+
+# Logs
+*.log
+logs/
+
+# Database Files
+*.mdf
+*.ldf
+*.db
+*.sqlite
+*.sqlite3
+
+# OS Files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# IDE
+.idea/
+*.sln.iml
+
+# Test Results
+[Tt]est[Rr]esult*/
+*.VisualState.xml

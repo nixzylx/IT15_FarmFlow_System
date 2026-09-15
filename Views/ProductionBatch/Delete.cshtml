@@ -1,0 +1,134 @@
+@model FarmFlow.Web.Models.ProductionBatch
+@{
+    ViewData["Title"] = "Delete Batch - FarmFlow";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f4f0; padding: 40px 20px; }
+        .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 16px; padding: 40px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        .warning-icon { text-align: center; font-size: 64px; color: #dc3545; display: block; margin-bottom: 15px; }
+        h1 { color: #dc3545; margin-bottom: 10px; text-align: center; }
+        .subtitle { color: #888; margin-bottom: 30px; text-align: center; }
+        .batch-details {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+        }
+        .batch-details .detail { display: flex; padding: 8px 0; border-bottom: 1px solid #e9ecef; }
+        .batch-details .detail:last-child { border-bottom: none; }
+        .batch-details .label { font-weight: 600; width: 140px; color: #495057; }
+        .batch-details .value { color: #212529; }
+        .warning-text {
+            background: #fff3cd;
+            color: #856404;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #ffeeba;
+            text-align: center;
+        }
+        .btn-group { display: flex; gap: 10px; margin-top: 20px; justify-content: center; flex-wrap: wrap; }
+        .btn-danger { background: #dc3545; color: white; border: none; padding: 12px 30px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 16px; transition: background 0.3s; }
+        .btn-danger:hover { background: #c82333; }
+        .btn-cancel { background: #6c757d; color: white; border: none; padding: 12px 30px; border-radius: 8px; cursor: pointer; font-weight: 600; text-decoration: none; display: inline-block; transition: background 0.3s; }
+        .btn-cancel:hover { background: #5a6268; }
+        .badge { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; display: inline-block; }
+        .badge-success { background: #d4edda; color: #155724; }
+        .badge-danger { background: #f8d7da; color: #721c24; }
+        .badge-info { background: #d1ecf1; color: #0c5460; }
+        .badge-warning { background: #fff3cd; color: #856404; }
+        .badge-secondary { background: #e2e3e5; color: #383d41; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <span class="warning-icon">⚠️</span>
+        <h1>Delete Production Batch</h1>
+        <p class="subtitle">Are you sure you want to delete this batch? This action cannot be undone.</p>
+
+        <div class="warning-text">
+            <i class="fas fa-exclamation-triangle"></i> 
+            Deleting this batch will permanently remove it from the system.
+        </div>
+
+        <div class="batch-details">
+            <div class="detail">
+                <span class="label">Batch Code:</span>
+                <span class="value"><strong>@Model?.BatchCode</strong></span>
+            </div>
+            <div class="detail">
+                <span class="label">Farm:</span>
+                <span class="value">@Model?.Farm?.FarmName</span>
+            </div>
+            <div class="detail">
+                <span class="label">Crop:</span>
+                <span class="value">@Model?.Crop?.CropName</span>
+            </div>
+            <div class="detail">
+                <span class="label">Field:</span>
+                <span class="value">@(Model?.FieldName ?? "-")</span>
+            </div>
+            <div class="detail">
+                <span class="label">Area:</span>
+                <span class="value">@(Model?.FieldAreaHectares?.ToString("N2") ?? "-") ha</span>
+            </div>
+            <div class="detail">
+                <span class="label">Stage:</span>
+                <span class="value">
+                    @{
+                        var stageClass = Model?.CurrentStage switch
+                        {
+                            "Planning" => "badge-secondary",
+                            "Planted" => "badge-info",
+                            "Growing" => "badge-warning",
+                            "Harvesting" => "badge-warning",
+                            "Completed" => "badge-success",
+                            _ => "badge-secondary"
+                        };
+                    }
+                    <span class="badge @stageClass">@(Model?.CurrentStage ?? "Planning")</span>
+                </span>
+            </div>
+            <div class="detail">
+                <span class="label">Health Status:</span>
+                <span class="value">@(Model?.CropHealthStatus ?? "-")</span>
+            </div>
+            <div class="detail">
+                <span class="label">Status:</span>
+                <span class="value">@(Model?.IsActive == true ? "Active" : "Inactive")</span>
+            </div>
+            <div class="detail">
+                <span class="label">Predicted Yield:</span>
+                <span class="value">@(Model?.PredictedYieldKg?.ToString("N2") ?? "-") kg</span>
+            </div>
+            <div class="detail">
+                <span class="label">Actual Yield:</span>
+                <span class="value">@(Model?.ActualYieldKg?.ToString("N2") ?? "-") kg</span>
+            </div>
+        </div>
+
+        <div class="btn-group">
+            <form method="post" asp-action="DeleteConfirmed">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@Model?.Id" />
+                <button type="submit" class="btn-danger">
+                    <i class="fas fa-trash"></i> Yes, Delete
+                </button>
+            </form>
+            <a href="/ProductionBatch" class="btn-cancel">
+                <i class="fas fa-times"></i> Cancel
+            </a>
+        </div>
+    </div>
+</body>
+</html>

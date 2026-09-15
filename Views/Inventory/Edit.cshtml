@@ -1,0 +1,184 @@
+@model FarmFlow.Web.Models.InventoryItem
+@{
+    ViewData["Title"] = "Edit Inventory Item";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="page-header">
+    <div class="left">
+        <a href="/Inventory" class="btn-back">
+            <i class="fas fa-arrow-left"></i> Back
+        </a>
+        <h1><span class="icon">✏️</span> Edit Inventory Item</h1>
+    </div>
+</div>
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="validation-summary">
+        <ul>
+            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+            {
+                <li>@error.ErrorMessage</li>
+            }
+        </ul>
+    </div>
+}
+
+<div class="card-custom" style="max-width:900px;margin:0 auto;">
+    <form method="post" asp-action="Edit">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="Id" value="@Model?.Id" />
+
+        <div class="card-header-custom" style="margin-bottom:20px;">
+            <h5><i class="fas fa-info-circle" style="color:var(--primary);margin-right:8px;"></i> Basic Information</h5>
+        </div>
+
+        <div class="form-row-custom">
+            <div class="form-group-custom">
+                <label>Item Code</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-barcode icon"></i>
+                    <input type="text" name="ItemCode" value="@Model?.ItemCode" readonly style="background:#e9ecef;" />
+                </div>
+            </div>
+            <div class="form-group-custom">
+                <label>Item Name <span class="required">*</span></label>
+                <div class="input-wrapper">
+                    <i class="fas fa-box icon"></i>
+                    <input type="text" name="ItemName" value="@Model?.ItemName" required />
+                </div>
+            </div>
+        </div>
+
+        <div class="form-row-custom">
+            <div class="form-group-custom">
+                <label>Item Type</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-tag icon"></i>
+                    <select name="ItemType">
+                        <option value="">Select Type...</option>
+                        <option value="Raw Material" selected="@(Model?.ItemType == "Raw Material")">Raw Material</option>
+                        <option value="Input" selected="@(Model?.ItemType == "Input")">Input</option>
+                        <option value="Finished Produce" selected="@(Model?.ItemType == "Finished Produce")">Finished Produce</option>
+                        <option value="Equipment" selected="@(Model?.ItemType == "Equipment")">Equipment</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group-custom">
+                <label>Category</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-tags icon"></i>
+                    <select name="CategoryId">
+                        <option value="">Select Category...</option>
+                        @foreach (var cat in ViewBag.Categories)
+                        {
+                            <option value="@cat.Id" selected="@(Model?.CategoryId == cat.Id)">@cat.Name</option>
+                        }
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-header-custom" style="margin-bottom:20px;margin-top:30px;">
+            <h5><i class="fas fa-cubes" style="color:var(--secondary);margin-right:8px;"></i> Stock Information</h5>
+        </div>
+
+        <div class="form-row-custom">
+            <div class="form-group-custom">
+                <label>Unit of Measure <span class="required">*</span></label>
+                <div class="input-wrapper">
+                    <i class="fas fa-weight icon"></i>
+                    <select name="UnitOfMeasure" required>
+                        <option value="kg" selected="@(Model?.UnitOfMeasure == "kg")">Kilogram (kg)</option>
+                        <option value="bags" selected="@(Model?.UnitOfMeasure == "bags")">Bags</option>
+                        <option value="liters" selected="@(Model?.UnitOfMeasure == "liters")">Liters</option>
+                        <option value="pieces" selected="@(Model?.UnitOfMeasure == "pieces")">Pieces</option>
+                        <option value="tons" selected="@(Model?.UnitOfMeasure == "tons")">Tons</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group-custom">
+                <label>Storage Location</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-warehouse icon"></i>
+                    <input type="text" name="StorageLocation" value="@Model?.StorageLocation" />
+                </div>
+            </div>
+        </div>
+
+        <div class="form-row-custom">
+            <div class="form-group-custom">
+                <label>Reorder Level</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-exclamation-triangle icon"></i>
+                    <input type="number" name="ReorderLevel" value="@Model?.ReorderLevel" step="0.01" />
+                </div>
+            </div>
+            <div class="form-group-custom">
+                <label>Reorder Quantity</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-shopping-cart icon"></i>
+                    <input type="number" name="ReorderQuantity" value="@Model?.ReorderQuantity" step="0.01" />
+                </div>
+            </div>
+        </div>
+
+        <div class="form-row-custom">
+            <div class="form-group-custom">
+                <label>Expiry Date</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-calendar-alt icon"></i>
+                    <input type="date" name="ExpiryDate" value="@(Model?.ExpiryDate?.ToString("yyyy-MM-dd"))" />
+                </div>
+            </div>
+            <div class="form-group-custom">
+                <label>Current Stock (Read Only)</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-cubes icon"></i>
+                    <input type="text" value="@Model?.CurrentStock @Model?.UnitOfMeasure" readonly style="background:#e9ecef;" />
+                </div>
+                <small style="color:var(--text-muted);font-size:12px;">
+                    <i class="fas fa-info-circle"></i> Use "Adjust Stock" to change quantity
+                </small>
+            </div>
+        </div>
+
+        <div class="card-header-custom" style="margin-bottom:20px;margin-top:30px;">
+            <h5><i class="fas fa-money-bill-wave" style="color:var(--primary-light);margin-right:8px;"></i> Pricing</h5>
+        </div>
+
+        <div class="form-row-custom">
+            <div class="form-group-custom">
+                <label>Cost Per Unit (₱)</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-money-bill-wave icon"></i>
+                    <input type="number" name="CostPerUnit" value="@Model?.CostPerUnit" step="0.01" />
+                </div>
+            </div>
+            <div class="form-group-custom">
+                <label>Selling Price Per Unit (₱)</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-tag icon"></i>
+                    <input type="number" name="SellingPricePerUnit" value="@Model?.SellingPricePerUnit" step="0.01" />
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group-custom">
+            <div class="checkbox-group">
+                <input type="checkbox" id="IsActive" name="IsActive" value="true" checked="@(Model?.IsActive == true)" />
+                <label for="IsActive">Active Item</label>
+            </div>
+        </div>
+
+        <div style="display:flex;gap:12px;margin-top:25px;flex-wrap:wrap;">
+            <button type="submit" class="btn-submit">
+                <i class="fas fa-save"></i> Update Item
+            </button>
+            <a href="/Inventory" class="btn-cancel">
+                <i class="fas fa-times"></i> Cancel
+            </a>
+        </div>
+    </form>
+</div>

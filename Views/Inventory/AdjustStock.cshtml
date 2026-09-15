@@ -1,0 +1,112 @@
+@model FarmFlow.Web.Models.InventoryTransaction
+@{
+    ViewData["Title"] = "Adjust Stock";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var item = ViewBag.Item as FarmFlow.Web.Models.InventoryItem;
+}
+
+<div class="page-header">
+    <div class="left">
+        <a href="/Inventory" class="btn-back">
+            <i class="fas fa-arrow-left"></i> Back
+        </a>
+        <h1><span class="icon">🔄</span> Adjust Stock</h1>
+    </div>
+</div>
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="validation-summary">
+        <ul>
+            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+            {
+                <li>@error.ErrorMessage</li>
+            }
+        </ul>
+    </div>
+}
+
+<!-- Item Info Card -->
+<div class="card-custom mb-4" style="border-left:4px solid var(--primary);">
+    <div class="row align-items-center">
+        <div class="col-md-8">
+            <h4 style="margin:0;color:var(--primary-dark);font-weight:700;">@item?.ItemName</h4>
+            <p style="margin:6px 0 0;color:var(--text-muted);">
+                <span class="badge-status info">@item?.ItemCode</span>
+                @if (item?.Category != null)
+                {
+                    <span class="badge-status secondary" style="margin-left:6px;">@item.Category.Name</span>
+                }
+            </p>
+        </div>
+        <div class="col-md-4 text-md-end mt-3 mt-md-0">
+            <div style="font-size:13px;color:var(--text-muted);margin-bottom:4px;">Current Stock</div>
+            <span class="badge-status primary" style="padding:10px 20px;font-size:16px;">
+                <i class="fas fa-cubes"></i> @item?.CurrentStock @item?.UnitOfMeasure
+            </span>
+        </div>
+    </div>
+</div>
+
+<!-- Adjustment Form -->
+<div class="card-custom" style="max-width:700px;margin:0 auto;">
+    <div class="card-header-custom" style="margin-bottom:20px;">
+        <h5><i class="fas fa-exchange-alt" style="color:var(--secondary);margin-right:8px;"></i> Stock Adjustment</h5>
+    </div>
+
+    <form method="post" asp-action="AdjustStock">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="InventoryItemId" value="@item?.Id" />
+
+        <div class="form-group-custom">
+            <label>Transaction Type <span class="required">*</span></label>
+            <div class="input-wrapper">
+                <i class="fas fa-list icon"></i>
+                <select name="TransactionType" required>
+                    <option value="">Select Type...</option>
+                    <option value="Receiving">📥 Receiving (Stock In)</option>
+                    <option value="Issue">📤 Issue (Stock Out)</option>
+                    <option value="Wastage">🗑️ Wastage</option>
+                    <option value="Transfer">🔄 Transfer</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group-custom">
+            <label>Quantity Change <span class="required">*</span></label>
+            <div class="input-wrapper">
+                <i class="fas fa-calculator icon"></i>
+                <input type="number" name="QuantityChange" step="0.01" placeholder="Use + for IN, - for OUT" required />
+            </div>
+            <small style="color:var(--text-muted);font-size:12px;display:block;margin-top:6px;">
+                <i class="fas fa-info-circle"></i> 
+                <strong>Positive (+)</strong> for stock IN, <strong>Negative (-)</strong> for stock OUT
+            </small>
+        </div>
+
+        <div class="form-group-custom">
+            <label>Reference Document</label>
+            <div class="input-wrapper">
+                <i class="fas fa-file-alt icon"></i>
+                <input type="text" name="ReferenceDocument" placeholder="e.g., PO-2024-001, SO-2024-001" />
+            </div>
+        </div>
+
+        <div class="form-group-custom">
+            <label>Remarks</label>
+            <div class="input-wrapper">
+                <i class="fas fa-comment icon"></i>
+                <input type="text" name="Remarks" placeholder="e.g., Received from supplier XYZ" />
+            </div>
+        </div>
+
+        <div style="display:flex;gap:12px;margin-top:25px;flex-wrap:wrap;">
+            <button type="submit" class="btn-submit" style="background:#f4a261;">
+                <i class="fas fa-save"></i> Apply Adjustment
+            </button>
+            <a href="/Inventory" class="btn-cancel">
+                <i class="fas fa-times"></i> Cancel
+            </a>
+        </div>
+    </form>
+</div>

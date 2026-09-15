@@ -1,0 +1,68 @@
+@model FarmFlow.Web.Models.Category
+@{
+    ViewData["Title"] = "Add Category";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="page-header">
+    <div class="left">
+        <a href="/Category" class="btn-back">
+            <i class="fas fa-arrow-left"></i> Back
+        </a>
+        <h1><span class="icon">➕</span> Add Category</h1>
+    </div>
+</div>
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="validation-summary">
+        <ul>
+            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+            {
+                <li>@error.ErrorMessage</li>
+            }
+        </ul>
+    </div>
+}
+
+<div class="card-custom" style="max-width:600px;margin:0 auto;">
+    <div class="card-header-custom" style="margin-bottom:20px;">
+        <h5><i class="fas fa-tag" style="color:var(--primary);margin-right:8px;"></i> Category Details</h5>
+    </div>
+
+    <form method="post" asp-action="Create">
+        @Html.AntiForgeryToken()
+
+        <div class="form-group-custom">
+            <label>Category Name <span class="required">*</span></label>
+            <div class="input-wrapper">
+                <i class="fas fa-tag icon"></i>
+                <input type="text" name="Name" value="@Model?.Name" placeholder="e.g., Seeds, Fertilizers" required />
+            </div>
+        </div>
+
+        <div class="form-group-custom">
+            <label>Description</label>
+            <div class="input-wrapper">
+                <i class="fas fa-align-left icon"></i>
+                <input type="text" name="Description" value="@Model?.Description" placeholder="e.g., Planting seeds and seedlings" />
+            </div>
+        </div>
+
+        <div class="form-group-custom">
+            <div class="checkbox-group">
+                <input type="checkbox" id="IsActive" name="IsActive" value="true" checked />
+                <label for="IsActive">Active Category</label>
+            </div>
+        </div>
+
+        <div style="display:flex;gap:12px;margin-top:25px;flex-wrap:wrap;">
+            <button type="submit" class="btn-submit">
+                <i class="fas fa-save"></i> Create Category
+            </button>
+            <a href="/Category" class="btn-cancel">
+                <i class="fas fa-times"></i> Cancel
+            </a>
+        </div>
+    </form>
+</div>

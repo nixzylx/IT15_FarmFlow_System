@@ -1,0 +1,188 @@
+@model FarmFlow.Web.Models.ProductionBatch
+@{
+    ViewData["Title"] = "Add Production Batch";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="page-header">
+    <div class="left">
+        <a href="/ProductionBatch" class="btn-back">
+            <i class="fas fa-arrow-left"></i> Back
+        </a>
+        <h1><span class="icon">➕</span> Add Production Batch</h1>
+    </div>
+</div>
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="validation-summary">
+        <ul>
+            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+            {
+                <li>@error.ErrorMessage</li>
+            }
+        </ul>
+    </div>
+}
+
+<div class="card-custom" style="max-width:900px;margin:0 auto;">
+
+    <div class="card-header-custom" style="margin-bottom:20px;">
+        <h5><i class="fas fa-info-circle" style="color:var(--primary);margin-right:8px;"></i> Batch Information</h5>
+    </div>
+
+    <form method="post" asp-action="Create">
+        @Html.AntiForgeryToken()
+
+        <div class="form-row-custom">
+            <div class="form-group-custom">
+                <label>Batch Code <span class="required">*</span></label>
+                <div class="input-wrapper">
+                    <i class="fas fa-barcode icon"></i>
+                    <input type="text" name="BatchCode" value="@Model?.BatchCode" placeholder="e.g., BATCH-2024-001" required />
+                </div>
+            </div>
+            <div class="form-group-custom">
+                <label>Farm <span class="required">*</span></label>
+                <div class="input-wrapper">
+                    <i class="fas fa-tractor icon"></i>
+                    <select name="FarmId" required>
+                        <option value="">Select Farm...</option>
+                        @foreach (var farm in ViewBag.Farms)
+                        {
+                            <option value="@farm.Id" selected="@(Model?.FarmId == farm.Id)">@farm.FarmName</option>
+                        }
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-row-custom">
+            <div class="form-group-custom">
+                <label>Crop <span class="required">*</span></label>
+                <div class="input-wrapper">
+                    <i class="fas fa-seedling icon"></i>
+                    <select name="CropId" required>
+                        <option value="">Select Crop...</option>
+                        @foreach (var crop in ViewBag.Crops)
+                        {
+                            <option value="@crop.Id" selected="@(Model?.CropId == crop.Id)">@crop.CropName (@crop.Variety)</option>
+                        }
+                    </select>
+                </div>
+            </div>
+            <div class="form-group-custom">
+                <label>Field Name</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-map icon"></i>
+                    <input type="text" name="FieldName" value="@Model?.FieldName" placeholder="e.g., Field A" />
+                </div>
+            </div>
+        </div>
+
+        <div class="form-row-custom">
+            <div class="form-group-custom">
+                <label>Field Area (Hectares)</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-ruler-combined icon"></i>
+                    <input type="number" name="FieldAreaHectares" value="@Model?.FieldAreaHectares" step="0.01" placeholder="e.g., 2.5" />
+                </div>
+            </div>
+            <div class="form-group-custom">
+                <label>Current Stage</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-tasks icon"></i>
+                    <select name="CurrentStage">
+                        <option value="Planning" selected="@(Model?.CurrentStage == "Planning")">Planning</option>
+                        <option value="Planted" selected="@(Model?.CurrentStage == "Planted")">Planted</option>
+                        <option value="Growing" selected="@(Model?.CurrentStage == "Growing")">Growing</option>
+                        <option value="Harvesting" selected="@(Model?.CurrentStage == "Harvesting")">Harvesting</option>
+                        <option value="Completed" selected="@(Model?.CurrentStage == "Completed")">Completed</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-header-custom" style="margin-bottom:20px;margin-top:30px;">
+            <h5><i class="fas fa-calendar-alt" style="color:var(--secondary);margin-right:8px;"></i> Schedule</h5>
+        </div>
+
+        <div class="form-row-custom">
+            <div class="form-group-custom">
+                <label>Planting Date</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-calendar icon"></i>
+                    <input type="date" name="PlantingDate" value="@(Model?.PlantingDate?.ToString("yyyy-MM-dd"))" />
+                </div>
+            </div>
+            <div class="form-group-custom">
+                <label>Expected Harvest Date</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-calendar-check icon"></i>
+                    <input type="date" name="ExpectedHarvestDate" value="@(Model?.ExpectedHarvestDate?.ToString("yyyy-MM-dd"))" />
+                </div>
+            </div>
+        </div>
+
+        <div class="card-header-custom" style="margin-bottom:20px;margin-top:30px;">
+            <h5><i class="fas fa-chart-bar" style="color:var(--primary-light);margin-right:8px;"></i> Yield & Health</h5>
+        </div>
+
+        <div class="form-row-custom">
+            <div class="form-group-custom">
+                <label>Predicted Yield (kg)</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-weight-hanging icon"></i>
+                    <input type="number" name="PredictedYieldKg" value="@Model?.PredictedYieldKg" step="0.01" />
+                </div>
+            </div>
+            <div class="form-group-custom">
+                <label>Crop Health Status</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-heartbeat icon"></i>
+                    <select name="CropHealthStatus">
+                        <option value="">Select Status...</option>
+                        <option value="Excellent" selected="@(Model?.CropHealthStatus == "Excellent")">Excellent</option>
+                        <option value="Good" selected="@(Model?.CropHealthStatus == "Good")">Good</option>
+                        <option value="Fair" selected="@(Model?.CropHealthStatus == "Fair")">Fair</option>
+                        <option value="Poor" selected="@(Model?.CropHealthStatus == "Poor")">Poor</option>
+                        <option value="Diseased" selected="@(Model?.CropHealthStatus == "Diseased")">Diseased</option>
+                    </select>
+             s   </div>
+            </div>
+        </div>
+
+        <div class="form-row-custom">
+            <div class="form-group-custom">
+                <label>Actual Harvest Date</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-calendar-day icon"></i>
+                    <input type="date" name="ActualHarvestDate" value="@(Model?.ActualHarvestDate?.ToString("yyyy-MM-dd"))" />
+                </div>
+            </div>
+            <div class="form-group-custom">
+                <label>Actual Yield (kg)</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-check-circle icon"></i>
+                    <input type="number" name="ActualYieldKg" value="@Model?.ActualYieldKg" step="0.01" />
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group-custom">
+            <div class="checkbox-group">
+                <input type="checkbox" id="IsActive" name="IsActive" value="true" checked="@(Model?.IsActive != false)" />
+                <label for="IsActive">Active Batch</label>
+            </div>
+        </div>
+
+        <div style="display:flex;gap:12px;margin-top:25px;flex-wrap:wrap;">
+            <button type="submit" class="btn-submit">
+                <i class="fas fa-save"></i> Create Batch
+            </button>
+            <a href="/ProductionBatch" class="btn-cancel">
+                <i class="fas fa-times"></i> Cancel
+            </a>
+        </div>
+    </form>
+</div>

@@ -1,0 +1,150 @@
+@model IEnumerable<FarmFlow.Web.Models.Supplier>
+@{
+    ViewData["Title"] = "Suppliers";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var suppliers = Model.ToList();
+}
+
+<div class="page-header">
+    <div class="left">
+        <h1><span class="icon">🏭</span> Supplier Management</h1>
+    </div>
+    <a href="/Supplier/Create" class="btn-add">
+        <i class="fas fa-plus"></i> Add Supplier
+    </a>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert-success-custom">
+        <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
+    </div>
+}
+
+<!-- KPI Cards -->
+<div class="kpi-grid">
+    <div class="kpi-card">
+        <span class="kpi-icon"><i class="fas fa-building"></i></span>
+        <div class="kpi-label">Total Suppliers</div>
+        <div class="kpi-value">@ViewBag.TotalSuppliers</div>
+        <div class="kpi-change positive"><i class="fas fa-arrow-up"></i> Registered</div>
+    </div>
+    <div class="kpi-card" style="border-left-color:var(--primary-light);">
+        <span class="kpi-icon" style="color:var(--primary-light);"><i class="fas fa-check-circle"></i></span>
+        <div class="kpi-label">Active</div>
+        <div class="kpi-value">@ViewBag.ActiveSuppliers</div>
+        <div class="kpi-change positive"><i class="fas fa-check"></i> Verified</div>
+    </div>
+    <div class="kpi-card" style="border-left-color:var(--secondary);">
+        <span class="kpi-icon" style="color:var(--secondary);"><i class="fas fa-star"></i></span>
+        <div class="kpi-label">Avg. Rating</div>
+        <div class="kpi-value">@ViewBag.AvgRating.ToString("N1")</div>
+        <div class="kpi-change positive">Out of 5.0</div>
+    </div>
+    <div class="kpi-card" style="border-left-color:#f4a261;">
+        <span class="kpi-icon" style="color:#f4a261;"><i class="fas fa-file-invoice"></i></span>
+        <div class="kpi-label">Total POs</div>
+        <div class="kpi-value">@suppliers.Sum(s => s.PurchaseOrders?.Count ?? 0)</div>
+        <div class="kpi-change positive">All Time</div>
+    </div>
+</div>
+
+<!-- Filter Card -->
+<div class="card-custom mb-4">
+    <form method="get" asp-action="Index" style="display:flex;gap:12px;flex-wrap:wrap;align-items:end;">
+        <div style="flex:1;min-width:200px;">
+            <label style="font-size:13px;font-weight:600;display:block;margin-bottom:5px;">Search</label>
+            <div class="input-wrapper">
+                <i class="fas fa-search icon"></i>
+                <input type="text" name="searchTerm" value="@ViewBag.SearchTerm" placeholder="Search by name or code..." />
+            </div>
+        </div>
+        <div style="display:flex;gap:8px;">
+            <button type="submit" class="btn-add"><i class="fas fa-search"></i> Filter</button>
+            <a href="/Supplier" class="btn-back"><i class="fas fa-redo"></i> Reset</a>
+        </div>
+    </form>
+</div>
+
+<!-- Table -->
+<div class="card-custom">
+    <div class="table-wrapper">
+        <table class="table-custom">
+            <thead>
+                <tr>
+                    <th>Code</th>
+                    <th>Company Name</th>
+                    <th>Contact Person</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Payment Terms</th>
+                    <th>Rating</th>
+                    <th>Status</th>
+                    <th style="text-align:center;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (suppliers.Any())
+                {
+                    foreach (var s in suppliers)
+                    {
+                        <tr>
+                            <td><span class="badge-status info">@s.SupplierCode</span></td>
+                            <td><strong>@s.CompanyName</strong></td>
+                            <td>@(s.ContactPerson ?? "-")</td>
+                            <td>@(s.ContactEmail ?? "-")</td>
+                            <td>@(s.ContactPhone ?? "-")</td>
+                            <td>@(s.PaymentTerms ?? "-")</td>
+                            <td>
+                                @if (s.PerformanceRating.HasValue)
+                                {
+                                    <span style="color:#f4a261;font-weight:700;">★ @s.PerformanceRating.Value.ToString("N1")</span>
+                                }
+                                else
+                                {
+                                    <span style="color:var(--text-muted);">-</span>
+                                }
+                            </td>
+                            <td>
+                                @if (s.IsActive)
+                                {
+                                    <span class="badge-status active">Active</span>
+                                }
+                                else
+                                {
+                                    <span class="badge-status inactive">Inactive</span>
+                                }
+                            </td>
+                            <td style="text-align:center;white-space:nowrap;">
+                                <a href="/Supplier/Details/@s.Id" class="btn-add" style="padding:5px 10px;font-size:13px;background:#17a2b8;" title="View">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="/Supplier/Edit/@s.Id" class="btn-add" style="padding:5px 10px;font-size:13px;background:#ffc107;color:#212529;" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="/Supplier/Delete/@s.Id" class="btn-add" style="padding:5px 10px;font-size:13px;background:#dc3545;" title="Delete">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="9">
+                            <div class="empty-state">
+                                <i class="fas fa-building"></i>
+                                <h4>No Suppliers Found</h4>
+                                <p>Click "Add Supplier" to register your first supplier.</p>
+                                <a href="/Supplier/Create" class="btn-add" style="margin-top:12px;display:inline-flex;padding:8px 20px;font-size:13px;">
+                                    <i class="fas fa-plus"></i> Add First Supplier
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

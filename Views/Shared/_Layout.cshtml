@@ -1,0 +1,780 @@
+﻿@{
+    Layout = null;
+    var userRole = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"] - FarmFlow</title>
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Google Fonts - Roboto -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <style>
+        :root {
+            --primary-dark: #003324;
+            --primary: #0d6e3e;
+            --primary-light: #79c25c;
+            --secondary: #12a5da;
+            --bg-light: #f0f4f0;
+            --text-dark: #000000;
+            --text-muted: #6c757d;
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.12);
+            --border-radius: 16px;
+            --sidebar-width: 260px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg-light);
+            min-height: 100vh;
+            color: var(--text-dark);
+        }
+
+        /* ============================================================
+           HEADER
+        ============================================================ */
+        .header {
+            background: var(--primary-dark);
+            color: white;
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            z-index: 1001;
+            height: 64px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+        .header .header-left { display: flex; align-items: center; gap: 16px; }
+        .header .logo {
+            font-size: 22px;
+            font-weight: 900;
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .header .logo span { color: var(--primary-light); }
+        .header .user-info { display: flex; align-items: center; gap: 14px; }
+        .header .user-info .user-name { font-weight: 500; font-size: 0.9rem; }
+        .header .user-info .role-badge {
+            background: rgba(255, 255, 255, 0.12);
+            padding: 4px 14px;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .header .user-info .btn-logout {
+            background: rgba(255, 255, 255, 0.08);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 6px 16px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
+            font-family: 'Roboto', sans-serif;
+        }
+        .header .user-info .btn-logout:hover { background: rgba(255, 255, 255, 0.18); }
+
+        /* ============================================================
+           SIDEBAR
+        ============================================================ */
+        .sidebar {
+            position: fixed;
+            top: 64px; left: 0; bottom: 0;
+            width: var(--sidebar-width);
+            background: white;
+            border-right: 1px solid #e8ece8;
+            overflow-y: auto;
+            z-index: 1000;
+            padding: 16px 0;
+        }
+        .sidebar .nav-section { margin-bottom: 8px; }
+        .sidebar .nav-section-title {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            padding: 8px 20px 4px;
+        }
+        .sidebar .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 20px;
+            color: var(--text-dark);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            border-left: 3px solid transparent;
+        }
+        .sidebar .nav-item:hover { background: #f0f7f0; color: var(--primary-dark); }
+        .sidebar .nav-item.active {
+            background: #e8f5e9;
+            color: var(--primary-dark);
+            border-left-color: var(--primary);
+            font-weight: 600;
+        }
+        .sidebar .nav-item i {
+            width: 20px;
+            text-align: center;
+            font-size: 16px;
+            color: var(--text-muted);
+        }
+        .sidebar .nav-item.active i { color: var(--primary); }
+        .sidebar .nav-item .badge-soon {
+            margin-left: auto;
+            font-size: 9px;
+            background: #f0f4f0;
+            color: var(--text-muted);
+            padding: 2px 8px;
+            border-radius: 30px;
+        }
+
+        /* ============================================================
+           MAIN CONTENT
+        ============================================================ */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            margin-top: 64px;
+            padding: 24px;
+            min-height: calc(100vh - 64px);
+        }
+
+        /* ============================================================
+           CARDS
+        ============================================================ */
+        .card-custom {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            box-shadow: var(--shadow);
+            border: none;
+            transition: all 0.3s ease;
+        }
+        .card-custom:hover { box-shadow: var(--shadow-lg); }
+        .card-custom .card-header-custom {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #f0f4f0;
+        }
+        .card-custom .card-header-custom h5 {
+            font-weight: 700;
+            font-size: 16px;
+            margin: 0;
+        }
+        .card-custom .card-header-custom a {
+            font-size: 13px;
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .card-custom .card-header-custom a:hover { text-decoration: underline; }
+
+        /* ============================================================
+           KPI CARDS
+        ============================================================ */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .kpi-card {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 18px 20px;
+            box-shadow: var(--shadow);
+            border-left: 4px solid var(--primary);
+            transition: all 0.2s ease;
+        }
+        .kpi-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+        .kpi-card .kpi-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .kpi-card .kpi-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin: 4px 0 2px;
+        }
+        .kpi-card .kpi-change { font-size: 12px; font-weight: 600; }
+        .kpi-card .kpi-change.positive { color: var(--primary); }
+        .kpi-card .kpi-change.negative { color: #dc3545; }
+        .kpi-card .kpi-icon {
+            float: right;
+            font-size: 24px;
+            color: var(--primary-light);
+            opacity: 0.5;
+        }
+
+        /* ============================================================
+           PAGE HEADER
+        ============================================================ */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .page-header .left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .page-header .left h1 {
+            font-size: 26px;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .page-header .left h1 .icon { font-size: 28px; }
+
+        /* ============================================================
+           BUTTONS - GLOBAL
+        ============================================================ */
+        .btn-add {
+            background: var(--primary);
+            color: white !important;
+            padding: 8px 20px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border: none;
+            cursor: pointer;
+            font-family: 'Roboto', sans-serif;
+            white-space: nowrap;
+        }
+        .btn-add:hover {
+            background: var(--primary-dark);
+            color: white !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(13, 110, 62, 0.3);
+        }
+
+        .btn-back {
+            background: #6c757d;
+            color: white !important;
+            padding: 8px 16px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border: none;
+            cursor: pointer;
+            font-family: 'Roboto', sans-serif;
+            white-space: nowrap;
+        }
+        .btn-back:hover { background: #5a6268; color: white !important; }
+
+        .btn-submit {
+            background: var(--primary);
+            color: white;
+            padding: 12px 30px;
+            border-radius: 30px;
+            border: none;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Roboto', sans-serif;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-submit:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(13, 110, 62, 0.3);
+        }
+
+        .btn-cancel {
+            background: #6c757d;
+            color: white !important;
+            padding: 12px 30px;
+            border-radius: 30px;
+            border: none;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Roboto', sans-serif;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-cancel:hover { background: #5a6268; color: white !important; }
+
+        /* ============================================================
+           FORMS - GLOBAL
+        ============================================================ */
+        .form-group-custom { margin-bottom: 20px; }
+        .form-group-custom label {
+            display: block;
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--text-dark);
+            margin-bottom: 6px;
+        }
+        .form-group-custom label .required { color: #dc3545; }
+
+        .form-group-custom .input-wrapper { position: relative; }
+
+        .form-group-custom input,
+        .form-group-custom select,
+        .form-group-custom textarea {
+            width: 100%;
+            padding: 11px 16px 11px 44px;
+            border: 2px solid #e8ece8;
+            border-radius: 12px;
+            font-size: 14px;
+            font-family: 'Roboto', sans-serif;
+            background: #fafcfa;
+            color: var(--text-dark);
+            transition: all 0.3s ease;
+        }
+        .form-group-custom input:focus,
+        .form-group-custom select:focus,
+        .form-group-custom textarea:focus {
+            border-color: var(--primary);
+            background: white;
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(13, 110, 62, 0.1);
+        }
+        .form-group-custom input::placeholder { color: #bbb; }
+        .form-group-custom select { appearance: none; cursor: pointer; }
+
+        .form-row-custom {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        /* ============================================================
+           GLOBAL INPUT WRAPPER (for search bars)
+        ============================================================ */
+        .input-wrapper {
+            position: relative;
+            width: 100%;
+        }
+        .input-wrapper .icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 16px;
+            pointer-events: none;
+            z-index: 1;
+        }
+        .input-wrapper input,
+        .input-wrapper select,
+        .input-wrapper textarea {
+            width: 100%;
+            padding: 11px 16px 11px 44px;
+            border: 2px solid #e8ece8;
+            border-radius: 12px;
+            font-size: 14px;
+            font-family: 'Roboto', sans-serif;
+            background: #fafcfa;
+            color: var(--text-dark);
+            transition: all 0.3s ease;
+        }
+        .input-wrapper input:focus,
+        .input-wrapper select:focus,
+        .input-wrapper textarea:focus {
+            border-color: var(--primary);
+            background: white;
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(13, 110, 62, 0.1);
+        }
+        .input-wrapper select { appearance: none; cursor: pointer; }
+
+        /* ============================================================
+           CHECKBOX GROUP
+        ============================================================ */
+        .checkbox-group { display: flex; align-items: center; gap: 10px; }
+        .checkbox-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary);
+        }
+        .checkbox-group label { margin: 0; cursor: pointer; font-weight: 500; }
+
+        /* ============================================================
+           ALERTS - GLOBAL
+        ============================================================ */
+        .alert-success-custom {
+            background: #d4edda;
+            color: #155724;
+            padding: 14px 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--primary-light);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .alert-danger-custom {
+            background: #fee2e2;
+            color: #b91c1c;
+            padding: 14px 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border-left: 4px solid #dc3545;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .validation-summary {
+            background: #fee2e2;
+            color: #b91c1c;
+            padding: 12px 16px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border: 1px solid #fecaca;
+        }
+        .validation-summary ul { margin: 0; padding-left: 20px; }
+
+        /* ============================================================
+           TABLES
+        ============================================================ */
+        .table-wrapper { overflow-x: auto; }
+        .table-custom {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        .table-custom thead th {
+            background: var(--primary-dark);
+            color: white;
+            padding: 12px 16px;
+            text-align: left;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .table-custom tbody td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #f0f4f0;
+            vertical-align: middle;
+        }
+        .table-custom tbody tr:hover { background: #f8faf8; }
+
+        /* ============================================================
+           BADGES
+        ============================================================ */
+        .badge-status {
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-size: 11px;
+            font-weight: 600;
+            display: inline-block;
+            white-space: nowrap;
+        }
+        .badge-status.active { background: #d4edda; color: #155724; }
+        .badge-status.inactive { background: #f8d7da; color: #721c24; }
+        .badge-status.info { background: #d1ecf1; color: #0c5460; }
+        .badge-status.warning { background: #fff3cd; color: #856404; }
+        .badge-status.primary { background: #cce5ff; color: #004085; }
+        .badge-status.secondary { background: #e2e3e5; color: #383d41; }
+
+        /* ============================================================
+           EMPTY STATE
+        ============================================================ */
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            color: var(--text-muted);
+        }
+        .empty-state i {
+            font-size: 56px;
+            display: block;
+            margin-bottom: 15px;
+            color: #d0d5d0;
+        }
+        .empty-state h4 {
+            color: var(--text-dark);
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        /* ============================================================
+           CHARTS
+        ============================================================ */
+        .chart-container {
+            position: relative;
+            height: 250px;
+            width: 100%;
+        }
+
+        /* ============================================================
+           ACTIVITY FEED
+        ============================================================ */
+        .activity-feed { list-style: none; padding: 0; margin: 0; }
+        .activity-feed li {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f4f0;
+        }
+        .activity-feed li:last-child { border-bottom: none; }
+        .activity-feed .activity-icon {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+        .activity-feed .activity-icon.green { background: #e8f5e9; color: var(--primary); }
+        .activity-feed .activity-icon.orange { background: #fff3e0; color: #f4a261; }
+        .activity-feed .activity-icon.blue { background: #e3f2fd; color: var(--secondary); }
+        .activity-feed .activity-icon.red { background: #fbe9e7; color: #e76f51; }
+        .activity-feed .activity-content .activity-text { font-size: 13px; font-weight: 500; }
+        .activity-feed .activity-content .activity-time { font-size: 11px; color: var(--text-muted); }
+
+        /* ============================================================
+           FOOTER
+        ============================================================ */
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e8e0;
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        /* ============================================================
+           RESPONSIVE
+        ============================================================ */
+        @@media (max-width: 992px) {
+            .sidebar { transform: translateX(-100%); transition: transform 0.3s ease; }
+            .sidebar.open { transform: translateX(0); }
+            .main-content { margin-left: 0; }
+        }
+        @@media (max-width: 768px) {
+            .header .user-info .user-name { display: none; }
+            .header .user-info .role-badge { font-size: 9px; padding: 3px 10px; }
+            .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+            .form-row-custom { grid-template-columns: 1fr; }
+            .page-header { flex-direction: column; align-items: stretch; }
+        }
+        @@media (max-width: 480px) {
+            .kpi-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- HEADER -->
+    <header class="header">
+        <div class="header-left">
+            <div class="logo">
+                <i class="fas fa-seedling"></i> Farm<span>Flow</span>
+            </div>
+        </div>
+        <div class="user-info">
+            <span class="user-name"><i class="fas fa-user-circle"></i> @User.Identity?.Name</span>
+            <span class="role-badge">@userRole</span>
+            <form method="post" action="/Auth/Logout" class="d-inline">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn-logout">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </form>
+        </div>
+    </header>
+
+    <!-- SIDEBAR -->
+    <nav class="sidebar" id="sidebar">
+        @{
+            var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+        }
+
+        <div class="nav-section">
+            <a href="/Dashboard" class="nav-item @(currentController == "Dashboard" ? "active" : "")">
+                <i class="fas fa-chart-pie"></i> Dashboard
+            </a>
+        </div>
+
+        @if (User.IsInRole("Administrator") || User.IsInRole("Production_Manager"))
+        {
+            <div class="nav-section">
+                <div class="nav-section-title">Production</div>
+                <a href="/Farm" class="nav-item @(currentController == "Farm" ? "active" : "")">
+                    <i class="fas fa-tractor"></i> Farm Management
+                </a>
+                <a href="/Crop" class="nav-item @(currentController == "Crop" ? "active" : "")">
+                    <i class="fas fa-seedling"></i> Crop Management
+                </a>
+                <a href="/ProductionBatch" class="nav-item @(currentController == "ProductionBatch" ? "active" : "")">
+                    <i class="fas fa-clipboard-list"></i> Production Batches
+                </a>
+            </div>
+        }
+
+        @if (User.IsInRole("Administrator") || User.IsInRole("Warehouse_Keeper"))
+        {
+            <div class="nav-section">
+                <div class="nav-section-title">Inventory</div>
+                <a href="/Inventory" class="nav-item @(currentController == "Inventory" ? "active" : "")">
+                    <i class="fas fa-boxes"></i> Inventory Items
+                </a>
+                <a href="/Category" class="nav-item @(currentController == "Category" ? "active" : "")">
+                    <i class="fas fa-tags"></i> Categories
+                </a>
+            </div>
+        }
+
+        @if (User.IsInRole("Administrator") || User.IsInRole("Purchaser"))
+{
+    <div class="nav-section">
+        <div class="nav-section-title">Purchasing</div>
+        <a href="/Supplier" class="nav-item @(currentController == "Supplier" ? "active" : "")">
+            <i class="fas fa-truck"></i> Suppliers
+        </a>
+        <a href="/PurchaseOrder" class="nav-item @(currentController == "PurchaseOrder" ? "active" : "")">
+            <i class="fas fa-file-invoice"></i> Purchase Orders
+        </a>
+    </div>
+}
+
+        @if (User.IsInRole("Administrator") || User.IsInRole("Sales_Rep"))
+        {
+            <div class="nav-section">
+                <div class="nav-section-title">Sales &amp; CRM</div>
+                <a href="#" class="nav-item" style="opacity:0.6;cursor:not-allowed;">
+                    <i class="fas fa-users"></i> Customers
+                    <span class="badge-soon">Soon</span>
+                </a>
+                <a href="#" class="nav-item" style="opacity:0.6;cursor:not-allowed;">
+                    <i class="fas fa-shopping-cart"></i> Sales Orders
+                    <span class="badge-soon">Soon</span>
+                </a>
+                <a href="#" class="nav-item" style="opacity:0.6;cursor:not-allowed;">
+                    <i class="fas fa-comments"></i> CRM
+                    <span class="badge-soon">Soon</span>
+                </a>
+            </div>
+        }
+
+        @if (User.IsInRole("Administrator") || User.IsInRole("Accountant"))
+        {
+            <div class="nav-section">
+                <div class="nav-section-title">Finance</div>
+                <a href="#" class="nav-item" style="opacity:0.6;cursor:not-allowed;">
+                    <i class="fas fa-receipt"></i> Expenses
+                    <span class="badge-soon">Soon</span>
+                </a>
+                <a href="#" class="nav-item" style="opacity:0.6;cursor:not-allowed;">
+                    <i class="fas fa-credit-card"></i> Payments
+                    <span class="badge-soon">Soon</span>
+                </a>
+            </div>
+        }
+
+        @if (User.IsInRole("Administrator"))
+        {
+            <div class="nav-section">
+                <div class="nav-section-title">Administration</div>
+                <a href="/UserManagement" class="nav-item @(currentController == "UserManagement" ? "active" : "")">
+                    <i class="fas fa-user-cog"></i> User Management
+                </a>
+            </div>
+        }
+
+        <div class="nav-section">
+            <div class="nav-section-title">Analytics</div>
+            <a href="/Reports" class="nav-item @(currentController == "Reports" ? "active" : "")" style="opacity:0.6;cursor:not-allowed;">
+                <i class="fas fa-chart-bar"></i> Reports
+                <span class="badge-soon">Soon</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content" id="mainContent">
+        @RenderBody()
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            if (window.innerWidth <= 992) {
+                sidebar.classList.toggle('open');
+            }
+        }
+
+        document.addEventListener('click', function(e) {
+            const sidebar = document.getElementById('sidebar');
+            if (window.innerWidth <= 992) {
+                if (!sidebar.contains(e.target) && !e.target.closest('.menu-toggle')) {
+                    sidebar.classList.remove('open');
+                }
+            }
+        });
+
+        function handleResize() {
+            const sidebar = document.getElementById('sidebar');
+            if (window.innerWidth > 992) {
+                sidebar.classList.remove('open');
+            }
+        }
+        window.addEventListener('resize', handleResize);
+    </script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+
+</body>
+</html>

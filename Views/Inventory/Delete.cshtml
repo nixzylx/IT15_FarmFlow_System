@@ -1,0 +1,61 @@
+@model FarmFlow.Web.Models.InventoryItem
+@{
+    ViewData["Title"] = "Delete Inventory Item";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="page-header">
+    <div class="left">
+        <a href="/Inventory" class="btn-back">
+            <i class="fas fa-arrow-left"></i> Back
+        </a>
+        <h1><span class="icon">⚠️</span> Delete Inventory Item</h1>
+    </div>
+</div>
+
+<div class="card-custom" style="max-width:600px;margin:0 auto;text-align:center;">
+    <span style="font-size:64px;display:block;color:#dc3545;margin-bottom:15px;">⚠️</span>
+    <h3 style="color:#dc3545;font-weight:700;">Delete Item</h3>
+    <p style="color:var(--text-muted);margin-bottom:25px;">This action cannot be undone.</p>
+
+    <div class="alert-danger-custom" style="background:#fff3cd;color:#856404;border-left-color:#f4a261;justify-content:center;">
+        <i class="fas fa-exclamation-triangle"></i>
+        Deleting this item will permanently remove it from inventory.
+    </div>
+
+    <div style="background:#f8f9fa;padding:20px;border-radius:12px;margin-bottom:25px;text-align:left;">
+        <div style="display:flex;padding:8px 0;border-bottom:1px solid #e9ecef;">
+            <span style="font-weight:600;width:140px;color:var(--text-muted);">Item Code:</span>
+            <span><strong>@Model?.ItemCode</strong></span>
+        </div>
+        <div style="display:flex;padding:8px 0;border-bottom:1px solid #e9ecef;">
+            <span style="font-weight:600;width:140px;color:var(--text-muted);">Item Name:</span>
+            <span>@Model?.ItemName</span>
+        </div>
+        <div style="display:flex;padding:8px 0;border-bottom:1px solid #e9ecef;">
+            <span style="font-weight:600;width:140px;color:var(--text-muted);">Category:</span>
+            <span>@(Model?.Category?.Name ?? "-")</span>
+        </div>
+        <div style="display:flex;padding:8px 0;border-bottom:1px solid #e9ecef;">
+            <span style="font-weight:600;width:140px;color:var(--text-muted);">Current Stock:</span>
+            <span>@Model?.CurrentStock @Model?.UnitOfMeasure</span>
+        </div>
+        <div style="display:flex;padding:8px 0;">
+            <span style="font-weight:600;width:140px;color:var(--text-muted);">Total Value:</span>
+            <span><strong>₱@((Model?.CurrentStock * (Model?.CostPerUnit ?? 0))?.ToString("N2") ?? "0.00")</strong></span>
+        </div>
+    </div>
+
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+        <form method="post" asp-action="Delete">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" value="@Model?.Id" />
+            <button type="submit" class="btn-add" style="background:#dc3545;padding:12px 30px;font-size:16px;">
+                <i class="fas fa-trash"></i> Yes, Delete
+            </button>
+        </form>
+        <a href="/Inventory" class="btn-cancel">
+            <i class="fas fa-times"></i> Cancel
+        </a>
+    </div>
+</div>

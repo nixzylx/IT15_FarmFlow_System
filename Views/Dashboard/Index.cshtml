@@ -1,0 +1,381 @@
+@{
+    ViewData["Title"] = "Dashboard";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var userRole = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+
+    var roleIcon = userRole switch
+    {
+        "Administrator" => "👑",
+        "Production_Manager" => "🌱",
+        "Warehouse_Keeper" => "📦",
+        "Purchaser" => "🛒",
+        "Sales_Rep" => "📈",
+        "Accountant" => "💰",
+        _ => "🌾"
+    };
+
+    var roleDescription = userRole switch
+    {
+        "Administrator" => "Full system access and oversight",
+        "Production_Manager" => "Manage production, crops, and farm operations",
+        "Warehouse_Keeper" => "Manage inventory and stock",
+        "Purchaser" => "Manage suppliers and purchase orders",
+        "Sales_Rep" => "Manage customers and sales",
+        "Accountant" => "Manage finances and expenses",
+        _ => "Agricultural ERP & CRM System"
+    };
+}
+
+<!-- ============================================================
+WELCOME CARD
+============================================================ -->
+<div class="card-custom mb-4">
+    <div class="row align-items-center">
+        <div class="col-md-8">
+            <div style="display:flex;align-items:center;gap:16px;">
+                <span style="font-size:48px;">@roleIcon</span>
+                <div>
+                    <h1 style="font-size:26px;font-weight:700;color:var(--primary-dark);margin:0;">
+                        Welcome back, @User.Identity?.Name!
+                    </h1>
+                    <p style="color:var(--text-muted);margin:4px 0 0;font-size:15px;">@roleDescription</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 text-md-end mt-3 mt-md-0">
+            <span class="badge-status primary" style="font-size:13px;padding:6px 18px;">
+                <i class="fas fa-clock"></i> @DateTime.Now.ToString("dddd, MMMM dd, yyyy")
+            </span>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================
+KPI CARDS
+============================================================ -->
+<div class="kpi-grid">
+    <div class="kpi-card">
+        <span class="kpi-icon"><i class="fas fa-tractor"></i></span>
+        <div class="kpi-label">Total Farms</div>
+        <div class="kpi-value" id="kpiFarms">0</div>
+        <div class="kpi-change positive"><i class="fas fa-arrow-up"></i> Active</div>
+    </div>
+    <div class="kpi-card" style="border-left-color:var(--secondary);">
+        <span class="kpi-icon"><i class="fas fa-seedling"></i></span>
+        <div class="kpi-label">Active Crops</div>
+        <div class="kpi-value" id="kpiCrops">0</div>
+        <div class="kpi-change positive"><i class="fas fa-arrow-up"></i> Growing</div>
+    </div>
+    <div class="kpi-card" style="border-left-color:var(--primary-light);">
+        <span class="kpi-icon"><i class="fas fa-clipboard-list"></i></span>
+        <div class="kpi-label">Production Batches</div>
+        <div class="kpi-value" id="kpiBatches">0</div>
+        <div class="kpi-change positive"><i class="fas fa-arrow-up"></i> In Progress</div>
+    </div>
+    @if (User.IsInRole("Administrator"))
+    {
+        <div class="kpi-card" style="border-left-color:#f4a261;">
+            <span class="kpi-icon"><i class="fas fa-users"></i></span>
+            <div class="kpi-label">System Users</div>
+            <div class="kpi-value" id="kpiUsers">0</div>
+            <div class="kpi-change positive"><i class="fas fa-user-check"></i> Active</div>
+        </div>
+    }
+</div>
+
+<!-- ============================================================
+CHARTS ROW
+============================================================ -->
+<div class="row g-4 mb-4">
+    <!-- Chart 1: Production Overview -->
+    <div class="col-lg-8">
+        <div class="card-custom">
+            <div class="card-header-custom">
+                <h5><i class="fas fa-chart-line" style="color:var(--primary);margin-right:8px;"></i> Production Overview</h5>
+                <a href="/ProductionBatch">View All <i class="fas fa-arrow-right"></i></a>
+            </div>
+            <div class="chart-container">
+                <canvas id="productionChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart 2: Crop Health Distribution -->
+    <div class="col-lg-4">
+        <div class="card-custom">
+            <div class="card-header-header card-header-custom">
+                <h5><i class="fas fa-heartbeat" style="color:#e76f51;margin-right:8px;"></i> Crop Health</h5>
+            </div>
+            <div class="chart-container">
+                <canvas id="cropHealthChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================
+ACTIVITY + QUICK ACTIONS ROW
+============================================================ -->
+<div class="row g-4 mb-4">
+    <!-- Recent Activity -->
+    <div class="col-lg-8">
+        <div class="card-custom">
+            <div class="card-header-custom">
+                <h5><i class="fas fa-clock" style="color:var(--secondary);margin-right:8px;"></i> Recent Activity</h5>
+                <a href="#">View All</a>
+            </div>
+            <ul class="activity-feed">
+                <li>
+                    <span class="activity-icon green"><i class="fas fa-seedling"></i></span>
+                    <div class="activity-content">
+                        <div class="activity-text">New crop added: <strong>Tomato - Roma</strong></div>
+                        <div class="activity-time">2 hours ago</div>
+                    </div>
+                </li>
+                <li>
+                    <span class="activity-icon orange"><i class="fas fa-tractor"></i></span>
+                    <div class="activity-content">
+                        <div class="activity-text">Farm updated: <strong>Green Valley Farm</strong></div>
+                        <div class="activity-time">5 hours ago</div>
+                    </div>
+                </li>
+                <li>
+                    <span class="activity-icon blue"><i class="fas fa-user-plus"></i></span>
+                    <div class="activity-content">
+                        <div class="activity-text">New user registered: <strong>Maria Santos</strong></div>
+                        <div class="activity-time">Yesterday</div>
+                    </div>
+                </li>
+                <li>
+                    <span class="activity-icon green"><i class="fas fa-clipboard-check"></i></span>
+                    <div class="activity-content">
+                        <div class="activity-text">Batch completed: <strong>BATCH-2024-001</strong></div>
+                        <div class="activity-time">Yesterday</div>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="col-lg-4">
+        <div class="card-custom">
+            <div class="card-header-custom">
+                <h5><i class="fas fa-bolt" style="color:#f4a261;margin-right:8px;"></i> Quick Actions</h5>
+            </div>
+            <div class="quick-actions-grid">
+                @if (User.IsInRole("Administrator") || User.IsInRole("Production_Manager"))
+                {
+                    <a href="/Farm/Create" class="quick-action-btn">
+                        <i class="fas fa-plus-circle"></i>
+                        <span>Add Farm</span>
+                    </a>
+                    <a href="/Crop/Create" class="quick-action-btn">
+                        <i class="fas fa-plus-circle"></i>
+                        <span>Add Crop</span>
+                    </a>
+                    <a href="/ProductionBatch/Create" class="quick-action-btn">
+                        <i class="fas fa-plus-circle"></i>
+                        <span>New Batch</span>
+                    </a>
+                }
+                @if (User.IsInRole("Administrator"))
+                {
+                    <a href="/UserManagement/Create" class="quick-action-btn">
+                        <i class="fas fa-user-plus"></i>
+                        <span>Add User</span>
+                    </a>
+                }
+            </div>
+            <hr style="margin:16px 0;border-color:#f0f4f0;">
+            <div style="text-align:center;font-size:13px;color:var(--text-muted);">
+                <i class="fas fa-info-circle"></i> Need help? <a href="#" style="color:var(--primary);">Contact support</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================
+REPORTS TABLE
+============================================================ -->
+<div class="card-custom">
+    <div class="card-header-custom">
+        <h5><i class="fas fa-file-alt" style="color:var(--primary);margin-right:8px;"></i> Recent Reports</h5>
+        <a href="#">Generate Report</a>
+    </div>
+    <div class="table-wrapper">
+        <table class="table-custom">
+            <thead>
+                <tr>
+                    <th>Report Name</th>
+                    <th>Type</th>
+                    <th>Generated By</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Monthly Production Summary</strong></td>
+                    <td><span class="badge-status info">Production</span></td>
+                    <td>System</td>
+                    <td>@DateTime.Now.ToString("MMM dd, yyyy")</td>
+                    <td><span class="badge-status active">Ready</span></td>
+                    <td><a href="#" class="btn-add" style="padding:4px 12px;font-size:12px;"><i class="fas fa-download"></i> Download</a></td>
+                </tr>
+                <tr>
+                    <td><strong>Crop Yield Analysis</strong></td>
+                    <td><span class="badge-status primary">Analytics</span></td>
+                    <td>System</td>
+                    <td>@DateTime.Now.AddDays(-1).ToString("MMM dd, yyyy")</td>
+                    <td><span class="badge-status active">Ready</span></td>
+                    <td><a href="#" class="btn-add" style="padding:4px 12px;font-size:12px;"><i class="fas fa-download"></i> Download</a></td>
+                </tr>
+                <tr>
+                    <td><strong>Farm Performance Report</strong></td>
+                    <td><span class="badge-status warning">Operational</span></td>
+                    <td>System</td>
+                    <td>@DateTime.Now.AddDays(-3).ToString("MMM dd, yyyy")</td>
+                    <td><span class="badge-status secondary">Processing</span></td>
+                    <td><a href="#" class="btn-add" style="padding:4px 12px;font-size:12px;opacity:0.5;cursor:not-allowed;"><i class="fas fa-clock"></i> Wait</a></td>
+                </tr>
+                @if (User.IsInRole("Administrator"))
+                {
+                    <tr>
+                        <td><strong>User Activity Report</strong></td>
+                        <td><span class="badge-status secondary">Admin</span></td>
+                        <td>System</td>
+                        <td>@DateTime.Now.AddDays(-5).ToString("MMM dd, yyyy")</td>
+                        <td><span class="badge-status active">Ready</span></td>
+                        <td><a href="#" class="btn-add" style="padding:4px 12px;font-size:12px;"><i class="fas fa-download"></i> Download</a></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // ============================================================
+        // PRODUCTION OVERVIEW CHART (Bar Chart)
+        // ============================================================
+        const productionCtx = document.getElementById('productionChart').getContext('2d');
+        new Chart(productionCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'],
+                datasets: [
+                    {
+                        label: 'Predicted Yield (kg)',
+                        data: [12000, 15000, 18000, 14000, 16000, 20000, 22000, 19000],
+                        backgroundColor: 'rgba(121, 194, 92, 0.6)',
+                        borderColor: 'rgba(121, 194, 92, 1)',
+                        borderWidth: 2,
+                        borderRadius: 6
+                    },
+                    {
+                        label: 'Actual Yield (kg)',
+                        data: [11000, 14500, 17500, 13500, 15500, 19500, 21500, 0],
+                        backgroundColor: 'rgba(13, 110, 62, 0.6)',
+                        borderColor: 'rgba(13, 110, 62, 1)',
+                        borderWidth: 2,
+                        borderRadius: 6
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            font: { family: 'Roboto', size: 12, weight: '500' },
+                            usePointStyle: true,
+                            padding: 16
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: '#f0f4f0' },
+                        ticks: { font: { family: 'Roboto' } }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { font: { family: 'Roboto' } }
+                    }
+                }
+            }
+        });
+
+        // ============================================================
+        // CROP HEALTH CHART (Doughnut Chart)
+        // ============================================================
+        const cropHealthCtx = document.getElementById('cropHealthChart').getContext('2d');
+        new Chart(cropHealthCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Excellent', 'Good', 'Fair', 'Poor'],
+                datasets: [{
+                    data: [45, 30, 15, 10],
+                    backgroundColor: [
+                        '#79c25c',
+                        '#12a5da',
+                        '#f4a261',
+                        '#e76f51'
+                    ],
+                    borderWidth: 0,
+                    hoverOffset: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '70%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            font: { family: 'Roboto', size: 11 },
+                            usePointStyle: true,
+                            padding: 12
+                        }
+                    }
+                }
+            }
+        });
+
+        // ============================================================
+        // LOAD KPI DATA (Placeholder - replace with API calls)
+        // ============================================================
+        document.getElementById('kpiFarms').textContent = '5';
+        document.getElementById('kpiCrops').textContent = '12';
+        document.getElementById('kpiBatches').textContent = '8';
+        document.getElementById('kpiUsers') && (document.getElementById('kpiUsers').textContent = '7');
+
+        // Uncomment below to load from API
+        /*
+        async function loadKPIs() {
+            try {
+                const response = await fetch('/api/dashboard/stats');
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById('kpiFarms').textContent = data.totalFarms || 0;
+                    document.getElementById('kpiCrops').textContent = data.totalCrops || 0;
+                    document.getElementById('kpiBatches').textContent = data.totalBatches || 0;
+                    if (document.getElementById('kpiUsers')) {
+                        document.getElementById('kpiUsers').textContent = data.totalUsers || 0;
+                    }
+                }
+            } catch (e) {
+                console.log('API not available');
+            }
+        }
+        loadKPIs();
+        */
+    </script>
+}

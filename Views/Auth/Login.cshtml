@@ -1,0 +1,824 @@
+@{
+    ViewData["Title"] = "Login - FarmFlow";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"]</title>
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Google Fonts - Roboto (Cropin's font) -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        /* ============================================
+           FARMFOW LOGIN - CROPIN DESIGN INSPIRED
+           ============================================ */
+
+        :root {
+            --primary-dark: #003324;
+            --primary: #0d6e3e;
+            --primary-light: #79c25c;
+            --secondary: #12a5da;
+            --bg-light: #f9f6fe;
+            --text-dark: #000000;
+            --text-muted: #6c757d;
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.15);
+            --border-radius: 16px;
+            --border-radius-lg: 24px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #003324 0%, #0d6e3e 60%, #12a5da 100%);
+            position: relative;
+            overflow: hidden;
+            padding: 20px;
+        }
+
+        /* Background Decorations */
+        body::before {
+            content: '🌾';
+            position: absolute;
+            font-size: 300px;
+            opacity: 0.04;
+            bottom: -50px;
+            right: -50px;
+            transform: rotate(-15deg);
+        }
+
+        body::after {
+            content: '🌱';
+            position: absolute;
+            font-size: 200px;
+            opacity: 0.03;
+            top: -30px;
+            left: -30px;
+            transform: rotate(20deg);
+        }
+
+        /* Main Container - Card Style */
+        .auth-container {
+            width: 100%;
+            max-width: 440px;
+            background: #ffffff;
+            border-radius: var(--border-radius-lg);
+            padding: 48px 40px 40px;
+            box-shadow: var(--shadow-lg);
+            position: relative;
+            z-index: 1;
+            animation: slideUp 0.7s ease-out;
+        }
+
+        @@keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Logo / Header */
+        .auth-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .auth-header .logo-icon {
+            font-size: 48px;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .auth-header .logo-text {
+            font-size: 32px;
+            font-weight: 900;
+            color: var(--primary-dark);
+            letter-spacing: -0.5px;
+        }
+
+        .auth-header .logo-text span {
+            color: var(--primary-light);
+        }
+
+        .auth-header .tagline {
+            color: var(--text-muted);
+            font-size: 14px;
+            font-weight: 400;
+            margin-top: 2px;
+            letter-spacing: 0.3px;
+        }
+
+        /* Tabs - Pill Style */
+        .auth-tabs {
+            display: flex;
+            background: #f0f4f0;
+            border-radius: 50px;
+            padding: 4px;
+            margin-bottom: 28px;
+        }
+
+        .auth-tabs .tab {
+            flex: 1;
+            text-align: center;
+            padding: 10px 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            border-radius: 50px;
+            border: none;
+            background: transparent;
+            transition: all 0.3s ease;
+        }
+
+        .auth-tabs .tab:hover {
+            color: var(--primary-dark);
+        }
+
+        .auth-tabs .tab.active {
+            color: #fff;
+            background: var(--primary-dark);
+            box-shadow: 0 4px 15px rgba(0, 51, 36, 0.3);
+        }
+
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 6px;
+        }
+
+        .form-group label .required {
+            color: #dc3545;
+            margin-left: 2px;
+        }
+
+        .form-group .input-wrapper {
+            position: relative;
+        }
+
+        .form-group .input-wrapper .icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 16px;
+            transition: color 0.3s ease;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 16px 12px 44px;
+            border: 2px solid #e8ece8;
+            border-radius: 12px;
+            font-size: 15px;
+            font-family: 'Roboto', sans-serif;
+            transition: all 0.3s ease;
+            background: #fafcfa;
+            color: var(--text-dark);
+        }
+
+        .form-group input:focus {
+            border-color: var(--primary);
+            background: #fff;
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(13, 110, 62, 0.1);
+        }
+
+        .form-group input::placeholder {
+            color: #bbb;
+        }
+
+        .form-group .toggle-password {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 16px;
+            padding: 0;
+        }
+
+        .form-group .toggle-password:hover {
+            color: var(--primary);
+        }
+
+        /* Custom Toggle Switch (Remember Me) */
+        .form-options {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+
+        .toggle-container input[type="checkbox"] {
+            display: none;
+        }
+
+        .toggle-slider {
+            width: 42px;
+            height: 24px;
+            background: #d1d5db;
+            border-radius: 12px;
+            position: relative;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+
+        .toggle-slider::after {
+            content: '';
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            background: white;
+            border-radius: 50%;
+            top: 3px;
+            left: 3px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+        }
+
+        .toggle-container input:checked+.toggle-slider {
+            background: var(--primary);
+        }
+
+        .toggle-container input:checked+.toggle-slider::after {
+            left: 21px;
+        }
+
+        .toggle-label {
+            font-size: 14px;
+            color: #495057;
+        }
+
+        .forgot-link {
+            font-size: 14px;
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .forgot-link:hover {
+            text-decoration: underline;
+            color: var(--primary-dark);
+        }
+
+        /* Buttons - Cropin Style (Rounded) */
+        .btn-primary-custom {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Roboto', sans-serif;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(13, 110, 62, 0.35);
+        }
+
+        .btn-primary-custom:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary-custom:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Alert Messages */
+        .alert {
+            padding: 12px 16px;
+            border-radius: 12px;
+            margin-bottom: 18px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .alert-danger {
+            background: #fee2e2;
+            color: #b91c1c;
+            border: 1px solid #fecaca;
+        }
+
+        .alert-success {
+            background: #dcfce7;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+        }
+
+        /* Demo Credentials Box */
+        .demo-credentials {
+            background: #f8faf8;
+            border-radius: 12px;
+            padding: 14px 18px;
+            margin-top: 20px;
+            border: 1px dashed #d0e0d0;
+        }
+
+        .demo-credentials p {
+            font-size: 13px;
+            color: #495057;
+            margin-bottom: 4px;
+        }
+
+        .demo-credentials .credential {
+            font-family: 'Roboto', monospace;
+            font-size: 13px;
+            color: var(--primary-dark);
+            background: #fff;
+            padding: 2px 12px;
+            border-radius: 6px;
+            display: inline-block;
+            border: 1px solid #d0e0d0;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .demo-credentials .credential:hover {
+            background: #e8f5e9;
+            border-color: var(--primary-light);
+        }
+
+        .demo-credentials .badge {
+            display: inline-block;
+            background: var(--primary);
+            color: #fff;
+            font-size: 10px;
+            padding: 2px 10px;
+            border-radius: 20px;
+            margin-left: 6px;
+            font-weight: 600;
+        }
+
+        /* Footer */
+        .auth-footer {
+            text-align: center;
+            margin-top: 24px;
+            padding-top: 18px;
+            border-top: 1px solid #eee;
+        }
+
+        .auth-footer p {
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            vertical-align: middle;
+            margin-right: 8px;
+        }
+
+        @@keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Toast Notification */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+        }
+
+        .toast {
+            background: white;
+            border-radius: 12px;
+            padding: 16px 24px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+            margin-bottom: 10px;
+            animation: slideIn 0.5s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 280px;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        .toast-success {
+            border-left: 4px solid var(--primary-light);
+        }
+
+        .toast-error {
+            border-left: 4px solid #dc3545;
+        }
+
+        @@keyframes slideIn {
+            from {
+                transform: translateX(100px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Responsive */
+        @@media (max-width: 520px) {
+            .auth-container {
+                padding: 30px 20px;
+            }
+
+            .auth-header .logo-text {
+                font-size: 28px;
+            }
+
+            .form-options {
+                flex-direction: column;
+                gap: 12px;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <div class="auth-container">
+        <!-- Header -->
+        <div class="auth-header">
+            <span class="logo-icon">🌾</span>
+            <div class="logo-text">Farm<span>Flow</span></div>
+            <p class="tagline">Agricultural ERP & CRM System</p>
+        </div>
+
+        <!-- Tabs -->
+        <div class="auth-tabs">
+            <button class="tab active" onclick="switchTab('login')">Sign In</button>
+            <button class="tab" onclick="switchTab('register')">Create Account</button>
+        </div>
+
+        <!-- Login Form -->
+        <div id="loginForm">
+            <form method="post" action="/Auth/Login" id="loginFormSubmit">
+                @Html.AntiForgeryToken()
+
+                @if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
+                {
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-circle"></i>
+                        @ViewBag.ErrorMessage
+                    </div>
+                }
+
+                @if (TempData["SuccessMessage"] != null)
+                {
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle"></i>
+                        @TempData["SuccessMessage"]
+                    </div>
+                }
+
+                <div class="form-group">
+                    <label for="username">Username <span class="required">*</span></label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-user icon"></i>
+                        <input type="text" id="username" name="username" placeholder="Enter your username" required value="@ViewBag.Username" />
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password <span class="required">*</span></label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-lock icon"></i>
+                        <input type="password" id="password" name="password" placeholder="Enter your password" required />
+                        <button type="button" class="toggle-password" onclick="togglePassword('password')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="form-options">
+                    <label class="toggle-container">
+                        <input type="checkbox" name="rememberMe" value="true" />
+                        <span class="toggle-slider"></span>
+                        <span class="toggle-label">Remember me</span>
+                    </label>
+                    <a href="#" class="forgot-link">Forgot password?</a>
+                </div>
+
+                <button type="submit" class="btn-primary-custom" id="loginBtn">
+                    <i class="fas fa-sign-in-alt"></i> Sign In
+                </button>
+            </form>
+
+            <!-- Demo Credentials -->
+            <div class="demo-credentials">
+                <p><i class="fas fa-info-circle"></i> <strong>Demo Credentials</strong></p>
+                <p>
+                    <span class="credential" onclick="copyCredential('admin')">admin</span>
+                    <span style="color:#999;font-size:13px;"> / </span>
+                    <span class="credential" onclick="copyCredential('Admin123!')">Admin123!</span>
+                    <span class="badge">Administrator</span>
+                </p>
+                <p style="font-size:12px;color:#999;margin-top:6px;">
+                    <i class="fas fa-mouse-pointer"></i> Click credentials to copy
+                </p>
+            </div>
+        </div>
+
+        <!-- Register Form -->
+        <div id="registerForm" style="display:none;">
+            <form method="post" action="/Auth/Register">
+                @Html.AntiForgeryToken()
+
+                <div class="form-row" style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
+                    <div class="form-group">
+                        <label for="firstName">First Name <span class="required">*</span></label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-user icon"></i>
+                            <input type="text" id="firstName" name="firstName" placeholder="First name" required />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="lastName">Last Name <span class="required">*</span></label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-user icon"></i>
+                            <input type="text" id="lastName" name="lastName" placeholder="Last name" required />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="regEmail">Email Address <span class="required">*</span></label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-envelope icon"></i>
+                        <input type="email" id="regEmail" name="email" placeholder="Enter email address" required />
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="regUsername">Username <span class="required">*</span></label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-user-tag icon"></i>
+                        <input type="text" id="regUsername" name="username" placeholder="Choose a username" required />
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="regPassword">Password <span class="required">*</span></label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-lock icon"></i>
+                        <input type="password" id="regPassword" name="password" placeholder="Create a password" required />
+                        <button type="button" class="toggle-password" onclick="togglePassword('regPassword')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                    <small style="color:#999;font-size:12px;display:block;margin-top:4px;">
+                        <i class="fas fa-info-circle"></i> Min 6 characters
+                    </small>
+                </div>
+
+                <div class="form-group">
+                    <label for="regConfirmPassword">Confirm Password <span class="required">*</span></label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-check-circle icon"></i>
+                        <input type="password" id="regConfirmPassword" name="confirmPassword" placeholder="Confirm your password" required />
+                        <button type="button" class="toggle-password" onclick="togglePassword('regConfirmPassword')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="regRole">Account Type</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-briefcase icon"></i>
+                        <select id="regRole" name="roleId">
+                            <option value="5">Sales Rep</option>
+                            <option value="3">Warehouse Keeper</option>
+                            <option value="4">Purchaser</option>
+                            <option value="6">Accountant</option>
+                            <option value="2">Production Manager</option>
+                            <option value="1">Administrator</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-primary-custom" id="registerBtn">
+                    <i class="fas fa-user-plus"></i> Create Account
+                </button>
+            </form>
+
+            <div style="text-align:center;margin-top:20px;">
+                <p style="color:var(--text-muted);font-size:14px;">
+                    Already have an account?
+                    <a href="#" onclick="switchTab('login'); return false;" style="color:var(--primary);font-weight:600;text-decoration:none;">
+                        Sign In
+                    </a>
+                </p>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="auth-footer">
+            <p>&copy; 2026 FarmFlow. All rights reserved.</p>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // FARMFOW AUTHENTICATION JAVASCRIPT
+        // ============================================
+
+        // ---------- Tab Switching ----------
+        function switchTab(tab) {
+            const loginForm = document.getElementById('loginForm');
+            const registerForm = document.getElementById('registerForm');
+            const tabs = document.querySelectorAll('.auth-tabs .tab');
+
+            if (tab === 'login') {
+                loginForm.style.display = 'block';
+                registerForm.style.display = 'none';
+                tabs[0].classList.add('active');
+                tabs[1].classList.remove('active');
+            } else {
+                loginForm.style.display = 'none';
+                registerForm.style.display = 'block';
+                tabs[1].classList.add('active');
+                tabs[0].classList.remove('active');
+            }
+        }
+
+        // ---------- Password Toggle ----------
+        function togglePassword(inputId) {
+            const input = document.getElementById(inputId);
+            const icon = input.parentElement.querySelector('.toggle-password i');
+
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+
+        // ---------- Copy Credential ----------
+        function copyCredential(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('Copied: ' + text, 'success');
+            }).catch(() => {
+                // Fallback
+                const input = document.createElement('input');
+                input.value = text;
+                document.body.appendChild(input);
+                input.select();
+                document.execCommand('copy');
+                document.body.removeChild(input);
+                showToast('Copied: ' + text, 'success');
+            });
+        }
+
+        // ---------- Toast Notification ----------
+        function showToast(message, type) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = 'toast toast-' + type;
+            toast.innerHTML = `
+                        <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+                        ${message}
+                    `;
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(100px)';
+                setTimeout(() => toast.remove(), 500);
+            }, 3000);
+        }
+
+        // ---------- Form Submission Loading ----------
+        document.getElementById('loginFormSubmit')?.addEventListener('submit', function() {
+            const btn = document.getElementById('loginBtn');
+            btn.innerHTML = '<span class="spinner"></span> Signing in...';
+            btn.disabled = true;
+        });
+
+        // ---------- Register Form Validation ----------
+        document.querySelector('#registerForm form')?.addEventListener('submit', function(e) {
+            const password = document.getElementById('regPassword').value;
+            const confirm = document.getElementById('regConfirmPassword').value;
+
+            if (password !== confirm) {
+                e.preventDefault();
+                showToast('Passwords do not match!', 'error');
+                return false;
+            }
+
+            if (password.length < 6) {
+                e.preventDefault();
+                showToast('Password must be at least 6 characters long!', 'error');
+                return false;
+            }
+
+            const btn = document.getElementById('registerBtn');
+            btn.innerHTML = '<span class="spinner"></span> Creating account...';
+            btn.disabled = true;
+        });
+
+        // ---------- Enter Key Support ----------
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                const activeForm = document.querySelector('#loginForm:not([style*="display:none"]) form, #registerForm:not([style*="display:none"]) form');
+                if (activeForm) {
+                    activeForm.dispatchEvent(new Event('submit'));
+                }
+            }
+        });
+
+        // ---------- Password Strength Indicator ----------
+        document.getElementById('regPassword')?.addEventListener('input', function() {
+            const strength = getPasswordStrength(this.value);
+            const hint = this.closest('.form-group').querySelector('small');
+            if (hint) {
+                hint.textContent = strength.message;
+                hint.style.color = strength.color;
+            }
+        });
+
+        function getPasswordStrength(password) {
+            if (password.length === 0) {
+                return { message: 'Min 6 characters', color: '#999' };
+            }
+            if (password.length < 4) {
+                return { message: 'Weak - too short', color: '#e76f51' };
+            }
+            if (password.length < 6) {
+                return { message: 'Fair - add more characters', color: '#f4a261' };
+            }
+            if (password.length < 8) {
+                return { message: 'Good password!', color: '#12a5da' };
+            }
+            return { message: 'Strong password!', color: '#79c25c' };
+        }
+    </script>
+
+</body>
+</html>

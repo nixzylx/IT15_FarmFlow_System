@@ -1,0 +1,219 @@
+@model FarmFlow.Web.Models.InventoryItem
+@{
+    ViewData["Title"] = "Item Details";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var transactions = ViewBag.Transactions as List<FarmFlow.Web.Models.InventoryTransaction>;
+    var isLowStock = Model.CurrentStock <= (Model.ReorderLevel ?? 0);
+}
+
+<div class="page-header">
+    <div class="left">
+        <a href="/Inventory" class="btn-back">
+            <i class="fas fa-arrow-left"></i> Back
+        </a>
+        <h1><span class="icon">📦</span> @Model.ItemName</h1>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <a href="/Inventory/AdjustStock/@Model.Id" class="btn-add" style="background:#f4a261;">
+            <i class="fas fa-exchange-alt"></i> Adjust Stock
+        </a>
+        <a href="/Inventory/Edit/@Model.Id" class="btn-add" style="background:#ffc107;color:#212529;">
+            <i class="fas fa-edit"></i> Edit
+        </a>
+    </div>
+</div>
+
+@if (isLowStock)
+{
+    <div class="alert-danger-custom" style="background:#fff3cd;color:#856404;border-left-color:#f4a261;">
+        <i class="fas fa-exclamation-triangle"></i>
+        <strong>Low Stock Warning!</strong> Current stock (@Model.CurrentStock @Model.UnitOfMeasure) is at or below reorder level (@Model.ReorderLevel @Model.UnitOfMeasure).
+    </div>
+}
+
+<!-- KPI Cards -->
+<div class="kpi-grid">
+    <div class="kpi-card" style="border-left-color:@(isLowStock ? "#e76f51" : "var(--primary)");">
+        <span class="kpi-icon"><i class="fas fa-cubes"></i></span>
+        <div class="kpi-label">Current Stock</div>
+        <div class="kpi-value" style="color:@(isLowStock ? "#e76f51" : "var(--primary-dark)");">
+            @Model.CurrentStock
+        </div>
+        <div class="kpi-change">@Model.UnitOfMeasure</div>
+    </div>
+    <div class="kpi-card" style="border-left-color:var(--secondary);">
+        <span class="kpi-icon"><i class="fas fa-coins"></i></span>
+        <div class="kpi-label">Total Value</div>
+        <div class="kpi-value">₱@((Model.CurrentStock * (Model.CostPerUnit ?? 0)).ToString("N0"))</div>
+        <div class="kpi-change positive"><i class="fas fa-chart-line"></i> At Cost</div>
+    </div>
+    <div class="kpi-card" style="border-left-color:var(--primary-light);">
+        <span class="kpi-icon"><i class="fas fa-tag"></i></span>
+        <div class="kpi-label">Cost / Unit</div>
+        <div class="kpi-value">₱@(Model.CostPerUnit?.ToString("N2") ?? "-")</div>
+        <div class="kpi-change">Per @Model.UnitOfMeasure</div>
+    </div>
+    <div class="kpi-card" style="border-left-color:#f4a261;">
+        <span class="kpi-icon"><i class="fas fa-exclamation-triangle"></i></span>
+        <div class="kpi-label">Reorder Level</div>
+        <div class="kpi-value">@(Model.ReorderLevel?.ToString("N0") ?? "-")</div>
+        <div class="kpi-change">@Model.UnitOfMeasure</div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <!-- Item Information -->
+    <div class="col-lg-6">
+        <div class="card-custom">
+            <div class="card-header-custom">
+                <h5><i class="fas fa-info-circle" style="color:var(--primary);margin-right:8px;"></i> Item Information</h5>
+            </div>
+            <div style="padding:10px 0;">
+                <div style="display:flex;padding:10px 0;border-bottom:1px solid #f0f4f0;">
+                    <span style="font-weight:600;width:150px;color:var(--text-muted);">Item Code:</span>
+                    <span><span class="badge-status info">@Model.ItemCode</span></span>
+                </div>
+                <div style="display:flex;padding:10px 0;border-bottom:1px solid #f0f4f0;">
+                    <span style="font-weight:600;width:150px;color:var(--text-muted);">Item Name:</span>
+                    <span><strong>@Model.ItemName</strong></span>
+                </div>
+                <div style="display:flex;padding:10px 0;border-bottom:1px solid #f0f4f0;">
+                    <span style="font-weight:600;width:150px;color:var(--text-muted);">Item Type:</span>
+                    <span>@(Model.ItemType ?? "-")</span>
+                </div>
+                <div style="display:flex;padding:10px 0;border-bottom:1px solid #f0f4f0;">
+                    <span style="font-weight:600;width:150px;color:var(--text-muted);">Category:</span>
+                    <span>
+                        @if (Model.Category != null)
+                        {
+                            <span class="badge-status secondary">@Model.Category.Name</span>
+                        }
+                        else
+                        {
+                            <span>-</span>
+                        }
+                    </span>
+                </div>
+                <div style="display:flex;padding:10px 0;border-bottom:1px solid #f0f4f0;">
+                    <span style="font-weight:600;width:150px;color:var(--text-muted);">Storage Location:</span>
+                    <span>@(Model.StorageLocation ?? "-")</span>
+                </div>
+                <div style="display:flex;padding:10px 0;border-bottom:1px solid #f0f4f0;">
+                    <span style="font-weight:600;width:150px;color:var(--text-muted);">Expiry Date:</span>
+                    <span>@(Model.ExpiryDate?.ToString("MMMM dd, yyyy") ?? "-")</span>
+                </div>
+                <div style="display:flex;padding:10px 0;">
+                    <span style="font-weight:600;width:150px;color:var(--text-muted);">Status:</span>
+                    <span>
+                        @if (Model.IsActive)
+                        {
+                            <span class="badge-status active">Active</span>
+                        }
+                        else
+                        {
+                            <span class="badge-status inactive">Inactive</span>
+                        }
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stock & Pricing -->
+    <div class="col-lg-6">
+        <div class="card-custom">
+            <div class="card-header-custom">
+                <h5><i class="fas fa-cubes" style="color:var(--secondary);margin-right:8px;"></i> Stock &amp; Pricing</h5>
+            </div>
+            <div style="padding:10px 0;">
+                <div style="display:flex;padding:10px 0;border-bottom:1px solid #f0f4f0;">
+                    <span style="font-weight:600;width:150px;color:var(--text-muted);">Current Stock:</span>
+                    <span style="font-size:20px;font-weight:700;color:@(isLowStock ? "#e76f51" : "var(--primary)");">
+                        @Model.CurrentStock @Model.UnitOfMeasure
+                    </span>
+                </div>
+                <div style="display:flex;padding:10px 0;border-bottom:1px solid #f0f4f0;">
+                    <span style="font-weight:600;width:150px;color:var(--text-muted);">Reorder Level:</span>
+                    <span>@(Model.ReorderLevel?.ToString("N2") ?? "-") @Model.UnitOfMeasure</span>
+                </div>
+                <div style="display:flex;padding:10px 0;border-bottom:1px solid #f0f4f0;">
+                    <span style="font-weight:600;width:150px;color:var(--text-muted);">Reorder Quantity:</span>
+                    <span>@(Model.ReorderQuantity?.ToString("N2") ?? "-") @Model.UnitOfMeasure</span>
+                </div>
+                <div style="display:flex;padding:10px 0;border-bottom:1px solid #f0f4f0;">
+                    <span style="font-weight:600;width:150px;color:var(--text-muted);">Cost Per Unit:</span>
+                    <span>₱@(Model.CostPerUnit?.ToString("N2") ?? "-")</span>
+                </div>
+                <div style="display:flex;padding:10px 0;border-bottom:1px solid #f0f4f0;">
+                    <span style="font-weight:600;width:150px;color:var(--text-muted);">Selling Price:</span>
+                    <span>₱@(Model.SellingPricePerUnit?.ToString("N2") ?? "-")</span>
+                </div>
+                <div style="display:flex;padding:10px 0;">
+                    <span style="font-weight:600;width:150px;color:var(--text-muted);">Total Value:</span>
+                    <span style="font-size:18px;font-weight:700;color:var(--primary-dark);">
+                        ₱@((Model.CurrentStock * (Model.CostPerUnit ?? 0)).ToString("N2"))
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Transaction History -->
+<div class="card-custom">
+    <div class="card-header-custom">
+        <h5><i class="fas fa-history" style="color:var(--primary);margin-right:8px;"></i> Transaction History (Last 20)</h5>
+        <a href="/Inventory/AdjustStock/@Model.Id">New Adjustment <i class="fas fa-arrow-right"></i></a>
+    </div>
+    <div class="table-wrapper">
+        <table class="table-custom">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Type</th>
+                    <th>Reference</th>
+                    <th>Change</th>
+                    <th>Before</th>
+                    <th>After</th>
+                    <th>By</th>
+                    <th>Remarks</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (transactions != null && transactions.Any())
+                {
+                    foreach (var t in transactions)
+                    {
+                        var changeClass = t.QuantityChange > 0 ? "active" : "inactive";
+                        <tr>
+                            <td>@t.TransactionDateTime.ToString("MMM dd, yyyy HH:mm")</td>
+                            <td><span class="badge-status info">@t.TransactionType</span></td>
+                            <td>@(t.ReferenceDocument ?? "-")</td>
+                            <td>
+                                <span class="badge-status @changeClass" style="font-weight:700;">
+                                    @(t.QuantityChange > 0 ? "+" : "")@t.QuantityChange
+                                </span>
+                            </td>
+                            <td>@t.StockBefore</td>
+                            <td><strong>@t.StockAfter</strong></td>
+                            <td>@(t.PerformedByUser?.Username ?? "-")</td>
+                            <td>@(t.Remarks ?? "-")</td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="8">
+                            <div class="empty-state">
+                                <i class="fas fa-history"></i>
+                                <h4>No Transactions Yet</h4>
+                                <p>Stock adjustments will appear here.</p>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

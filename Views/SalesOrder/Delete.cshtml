@@ -1,0 +1,78 @@
+@model FarmFlow.Web.Models.PurchaseOrder
+@{
+    ViewData["Title"] = "Delete Purchase Order";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var itemCount = Model.PurchaseOrderItems?.Count ?? 0;
+}
+
+<div class="page-header">
+    <div class="left">
+        <a href="/PurchaseOrder" class="btn-back"><i class="fas fa-arrow-left"></i> Back</a>
+        <h1><span class="icon">⚠️</span> Delete Purchase Order</h1>
+    </div>
+</div>
+
+<div class="card-custom" style="max-width:600px;margin:0 auto;text-align:center;">
+    <span style="font-size:64px;display:block;color:#dc3545;margin-bottom:15px;">⚠️</span>
+    <h3 style="color:#dc3545;font-weight:700;">Delete Purchase Order</h3>
+    <p style="color:var(--text-muted);margin-bottom:25px;">This action cannot be undone.</p>
+
+    @if (Model.Status == "Received")
+    {
+        <div class="alert-danger-custom" style="justify-content:center;text-align:left;">
+            <i class="fas fa-exclamation-triangle"></i>
+            <div>
+                <strong>Warning!</strong> This PO has already been <strong>received</strong>.
+                Deleting it will not revert stock changes.
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="alert-danger-custom" style="background:#fff3cd;color:#856404;border-left-color:#f4a261;justify-content:center;">
+            <i class="fas fa-exclamation-triangle"></i>
+            Deleting this PO will remove all its line items permanently.
+        </div>
+    }
+
+    <!-- PO Details -->
+    <div style="background:#f8f9fa;padding:20px;border-radius:12px;margin-bottom:25px;text-align:left;">
+        <div style="display:flex;padding:8px 0;border-bottom:1px solid #e9ecef;">
+            <span style="font-weight:600;width:150px;color:var(--text-muted);">PO Number:</span>
+            <span><strong>@Model?.PONumber</strong></span>
+        </div>
+        <div style="display:flex;padding:8px 0;border-bottom:1px solid #e9ecef;">
+            <span style="font-weight:600;width:150px;color:var(--text-muted);">Supplier:</span>
+            <span>@Model?.Supplier?.CompanyName</span>
+        </div>
+        <div style="display:flex;padding:8px 0;border-bottom:1px solid #e9ecef;">
+            <span style="font-weight:600;width:150px;color:var(--text-muted);">Order Date:</span>
+            <span>@Model?.OrderDate.ToString("MMM dd, yyyy")</span>
+        </div>
+        <div style="display:flex;padding:8px 0;border-bottom:1px solid #e9ecef;">
+            <span style="font-weight:600;width:150px;color:var(--text-muted);">Status:</span>
+            <span><span class="badge-status info">@Model?.Status</span></span>
+        </div>
+        <div style="display:flex;padding:8px 0;border-bottom:1px solid #e9ecef;">
+            <span style="font-weight:600;width:150px;color:var(--text-muted);">Line Items:</span>
+            <span>@itemCount</span>
+        </div>
+        <div style="display:flex;padding:8px 0;">
+            <span style="font-weight:600;width:150px;color:var(--text-muted);">Total Amount:</span>
+            <span><strong>₱@(Model?.TotalAmount?.ToString("N2") ?? "0.00")</strong></span>
+        </div>
+    </div>
+
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+        <form method="post" asp-action="Delete">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" value="@Model?.Id" />
+            <button type="submit" class="btn-add" style="background:#dc3545;padding:12px 30px;font-size:16px;">
+                <i class="fas fa-trash"></i> Yes, Delete
+            </button>
+        </form>
+        <a href="/PurchaseOrder" class="btn-cancel">
+            <i class="fas fa-times"></i> Cancel
+        </a>
+    </div>
+</div>

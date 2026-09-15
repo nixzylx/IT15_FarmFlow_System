@@ -1,0 +1,153 @@
+@model FarmFlow.Web.Models.Supplier
+@{
+    ViewData["Title"] = "Add Supplier";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="page-header">
+    <div class="left">
+        <a href="/Supplier" class="btn-back"><i class="fas fa-arrow-left"></i> Back</a>
+        <h1><span class="icon">➕</span> Add Supplier</h1>
+    </div>
+</div>
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="validation-summary">
+        <ul>
+            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+            {
+                <li>@error.ErrorMessage</li>
+            }
+        </ul>
+    </div>
+}
+
+<div class="card-custom" style="max-width:900px;margin:0 auto;">
+    <div class="card-header-custom" style="margin-bottom:20px;">
+        <h5><i class="fas fa-info-circle" style="color:var(--primary);margin-right:8px;"></i> Company Information</h5>
+    </div>
+
+    <form method="post" asp-action="Create">
+        @Html.AntiForgeryToken()
+
+        <div class="form-row-custom">
+            <div class="form-group-custom">
+                <label>Supplier Code <span class="required">*</span></label>
+                <div class="input-wrapper">
+                    <i class="fas fa-barcode icon"></i>
+                    <input type="text" name="SupplierCode" value="@Model?.SupplierCode" placeholder="e.g., SUP-001" required />
+                </div>
+            </div>
+            <div class="form-group-custom">
+                <label>Company Name <span class="required">*</span></label>
+                <div class="input-wrapper">
+                    <i class="fas fa-building icon"></i>
+                    <input type="text" name="CompanyName" value="@Model?.CompanyName" placeholder="e.g., AgriSupply Co." required />
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group-custom">
+            <label>Address</label>
+            <div class="input-wrapper">
+                <i class="fas fa-map-marker-alt icon"></i>
+                <input type="text" name="Address" value="@Model?.Address" placeholder="Street address" />
+            </div>
+        </div>
+
+        <div class="card-header-custom" style="margin-bottom:20px;margin-top:30px;">
+            <h5><i class="fas fa-user" style="color:var(--secondary);margin-right:8px;"></i> Contact Information</h5>
+        </div>
+
+        <div class="form-group-custom">
+            <label>Contact Person</label>
+            <div class="input-wrapper">
+                <i class="fas fa-user icon"></i>
+                <input type="text" name="ContactPerson" value="@Model?.ContactPerson" placeholder="Full name" />
+            </div>
+        </div>
+
+        <div class="form-row-custom">
+            <div class="form-group-custom">
+                <label>Email</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-envelope icon"></i>
+                    <input type="email" name="ContactEmail" value="@Model?.ContactEmail" placeholder="supplier@email.com" />
+                </div>
+            </div>
+            <div class="form-group-custom">
+                <label>Phone</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-phone icon"></i>
+                    <input type="text" name="ContactPhone" value="@Model?.ContactPhone" placeholder="09171234567" />
+                </div>
+            </div>
+        </div>
+
+        <div class="card-header-custom" style="margin-bottom:20px;margin-top:30px;">
+            <h5><i class="fas fa-file-contract" style="color:var(--primary-light);margin-right:8px;"></i> Business Details</h5>
+        </div>
+
+        <div class="form-row-custom">
+            <div class="form-group-custom">
+                <label>Tax ID</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-id-card icon"></i>
+                    <input type="text" name="TaxId" value="@Model?.TaxId" placeholder="TIN / VAT Number" />
+                </div>
+            </div>
+            <div class="form-group-custom">
+                <label>Payment Terms</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-handshake icon"></i>
+                    <select name="PaymentTerms">
+                        <option value="">Select Terms...</option>
+                        <option value="Net 15" selected="@(Model?.PaymentTerms == "Net 15")">Net 15</option>
+                        <option value="Net 30" selected="@(Model?.PaymentTerms == "Net 30")">Net 30</option>
+                        <option value="Net 60" selected="@(Model?.PaymentTerms == "Net 60")">Net 60</option>
+                        <option value="COD" selected="@(Model?.PaymentTerms == "COD")">COD (Cash on Delivery)</option>
+                        <option value="Prepaid" selected="@(Model?.PaymentTerms == "Prepaid")">Prepaid</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-row-custom">
+            <div class="form-group-custom">
+                <label>Credit Limit (₱)</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-money-bill-wave icon"></i>
+                    <input type="number" name="CreditLimit" value="@Model?.CreditLimit" step="0.01" placeholder="0.00" />
+                </div>
+            </div>
+            <div class="form-group-custom">
+                <label>Performance Rating (1-5)</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-star icon"></i>
+                    <input type="number" name="PerformanceRating" value="@Model?.PerformanceRating" step="0.1" min="1" max="5" placeholder="e.g., 4.5" />
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group-custom">
+            <label>Notes</label>
+            <div class="input-wrapper">
+                <i class="fas fa-comment icon"></i>
+                <input type="text" name="Notes" value="@Model?.Notes" placeholder="Additional notes..." />
+            </div>
+        </div>
+
+        <div class="form-group-custom">
+            <div class="checkbox-group">
+                <input type="checkbox" id="IsActive" name="IsActive" value="true" checked />
+                <label for="IsActive">Active Supplier</label>
+            </div>
+        </div>
+
+        <div style="display:flex;gap:12px;margin-top:25px;flex-wrap:wrap;">
+            <button type="submit" class="btn-submit"><i class="fas fa-save"></i> Create Supplier</button>
+            <a href="/Supplier" class="btn-cancel"><i class="fas fa-times"></i> Cancel</a>
+        </div>
+    </form>
+</div>

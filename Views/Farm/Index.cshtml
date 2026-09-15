@@ -1,0 +1,150 @@
+@model IEnumerable<FarmFlow.Web.Models.Farm>
+@{
+    ViewData["Title"] = "Farm Management";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var farms = Model.ToList();
+}
+
+<!-- Header -->
+<div class="page-header">
+    <div class="left">
+        <h1><span class="icon">🏠</span> Farm Management</h1>
+    </div>
+    <a href="/Farm/Create" class="btn-add">
+        <i class="fas fa-plus"></i> Add Farm
+    </a>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert-success-custom">
+        <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
+    </div>
+}
+
+<!-- KPI Cards -->
+<div class="kpi-grid">
+    <div class="kpi-card">
+        <span class="kpi-icon"><i class="fas fa-tractor"></i></span>
+        <div class="kpi-label">Total Farms</div>
+        <div class="kpi-value">@farms.Count</div>
+        <div class="kpi-change positive"><i class="fas fa-arrow-up"></i> Registered</div>
+    </div>
+    <div class="kpi-card" style="border-left-color:var(--primary-light);">
+        <span class="kpi-icon" style="color:var(--primary-light);"><i class="fas fa-check-circle"></i></span>
+        <div class="kpi-label">Active Farms</div>
+        <div class="kpi-value">@farms.Count(f => f.IsActive)</div>
+        <div class="kpi-change positive"><i class="fas fa-check"></i> Operational</div>
+    </div>
+    <div class="kpi-card" style="border-left-color:var(--secondary);">
+        <span class="kpi-icon" style="color:var(--secondary);"><i class="fas fa-ruler-combined"></i></span>
+        <div class="kpi-label">Total Hectares</div>
+        <div class="kpi-value">@farms.Sum(f => f.TotalHectares ?? 0).ToString("N0")</div>
+        <div class="kpi-change positive"><i class="fas fa-chart-line"></i> Land Area</div>
+    </div>
+    <div class="kpi-card" style="border-left-color:#f4a261;">
+        <span class="kpi-icon" style="color:#f4a261;"><i class="fas fa-times-circle"></i></span>
+        <div class="kpi-label">Inactive</div>
+        <div class="kpi-value">@farms.Count(f => !f.IsActive)</div>
+        <div class="kpi-change negative">Not in Use</div>
+    </div>
+</div>
+
+<!-- Filter Card -->
+<div class="card-custom mb-4">
+    <form method="get" asp-action="Index" style="display:flex;gap:12px;flex-wrap:wrap;align-items:end;">
+        <div style="flex:1;min-width:200px;">
+            <label style="font-size:13px;font-weight:600;display:block;margin-bottom:5px;">Search</label>
+            <div class="input-wrapper">
+                <i class="fas fa-search icon"></i>
+                <input type="text" name="searchTerm" value="@ViewBag.SearchTerm" placeholder="Search by name or code..." />
+            </div>
+        </div>
+        <div style="display:flex;gap:8px;">
+            <button type="submit" class="btn-add">
+                <i class="fas fa-search"></i> Filter
+            </button>
+            <a href="/Farm" class="btn-back">
+                <i class="fas fa-redo"></i> Reset
+            </a>
+        </div>
+    </form>
+</div>
+
+<!-- Table -->
+<div class="card-custom">
+    <div class="table-wrapper">
+        <table class="table-custom">
+            <thead>
+                <tr>
+                    <th>Code</th>
+                    <th>Farm Name</th>
+                    <th>Location</th>
+                    <th>Hectares</th>
+                    <th>Type</th>
+                    <th>Soil Type</th>
+                    <th>Status</th>
+                    <th style="text-align:center;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (farms.Any())
+                {
+                    foreach (var farm in farms)
+                    {
+                        <tr>
+                            <td><span class="badge-status info">@farm.FarmCode</span></td>
+                            <td><strong>@farm.FarmName</strong></td>
+                            <td>@farm.City, @farm.Province</td>
+                            <td><strong>@(farm.TotalHectares?.ToString("N2") ?? "-")</strong> ha</td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(farm.FarmType))
+                                {
+                                    <span class="badge-status secondary">@farm.FarmType</span>
+                                }
+                                else
+                                {
+                                    <span style="color:var(--text-muted);">-</span>
+                                }
+                            </td>
+                            <td>@(farm.SoilType ?? "-")</td>
+                            <td>
+                                @if (farm.IsActive)
+                                {
+                                    <span class="badge-status active">Active</span>
+                                }
+                                else
+                                {
+                                    <span class="badge-status inactive">Inactive</span>
+                                }
+                            </td>
+                            <td style="text-align:center;white-space:nowrap;">
+                                <a href="/Farm/Edit/@farm.Id" class="btn-add" style="padding:5px 12px;font-size:13px;background:#ffc107;color:#212529;" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="/Farm/Delete/@farm.Id" class="btn-add" style="padding:5px 12px;font-size:13px;background:#dc3545;" title="Delete">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="8">
+                            <div class="empty-state">
+                                <i class="fas fa-tractor"></i>
+                                <h4>No Farms Found</h4>
+                                <p>Click "Add Farm" to create your first farm.</p>
+                                <a href="/Farm/Create" class="btn-add" style="margin-top:12px;display:inline-flex;padding:8px 20px;font-size:13px;">
+                                    <i class="fas fa-plus"></i> Add First Farm
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

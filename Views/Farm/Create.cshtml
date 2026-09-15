@@ -1,0 +1,142 @@
+@model FarmFlow.Web.Models.Farm
+@{
+    ViewData["Title"] = "Add Farm - FarmFlow";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f4f0; padding: 40px 20px; }
+        .container { max-width: 700px; margin: 0 auto; background: white; border-radius: 16px; padding: 40px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        h1 { color: #1a472a; margin-bottom: 10px; }
+        .subtitle { color: #888; margin-bottom: 30px; }
+        
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; font-weight: 600; margin-bottom: 5px; color: #333; }
+        .form-group input, .form-group select { width: 100%; padding: 10px 14px; border: 2px solid #e8ece8; border-radius: 8px; font-size: 14px; background: #f8faf8; }
+        .form-group input:focus, .form-group select:focus { border-color: #2d6a4f; background: white; outline: none; }
+        .form-group .text-danger { color: #dc3545; font-size: 13px; margin-top: 4px; display: block; }
+        
+        .validation-summary { background: #f8d7da; color: #721c24; padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #f5c6cb; }
+        .validation-summary ul { margin: 0; padding-left: 20px; }
+        
+        .btn-group { display: flex; gap: 10px; margin-top: 20px; }
+        .btn-submit { background: #1a472a; color: white; border: none; padding: 12px 30px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 16px; }
+        .btn-submit:hover { background: #2d6a4f; }
+        .btn-cancel { background: #6c757d; color: white; border: none; padding: 12px 30px; border-radius: 8px; cursor: pointer; font-weight: 600; text-decoration: none; display: inline-block; }
+        .btn-cancel:hover { background: #5a6268; }
+        .required { color: #dc3545; }
+        .checkbox-group { display: flex; align-items: center; gap: 10px; }
+        .checkbox-group input[type="checkbox"] { width: 18px; height: 18px; accent-color: #1a472a; }
+        .checkbox-group label { margin: 0; cursor: pointer; }
+        
+        @@media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Add New Farm</h1>
+        <p class="subtitle">Create a new farm location.</p>
+
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div class="validation-summary">
+                <ul>
+                    @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                    {
+                        <li>@error.ErrorMessage</li>
+                    }
+                </ul>
+            </div>
+        }
+
+        <form method="post" asp-action="Create">
+            @Html.AntiForgeryToken()
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Farm Name <span class="required">*</span></label>
+                    <input type="text" id="FarmName" name="FarmName" value="@Model?.FarmName" required />
+                </div>
+                <div class="form-group">
+                    <label>Farm Code</label>
+                    <input type="text" id="FarmCode" name="FarmCode" value="@Model?.FarmCode" placeholder="e.g., FARM-001" />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Address</label>
+                <input type="text" id="Address" name="Address" value="@Model?.Address" />
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>City <span class="required">*</span></label>
+                    <input type="text" id="City" name="City" value="@Model?.City" required />
+                </div>
+                <div class="form-group">
+                    <label>Province <span class="required">*</span></label>
+                    <input type="text" id="Province" name="Province" value="@Model?.Province" required />
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Total Hectares</label>
+                    <input type="number" id="TotalHectares" name="TotalHectares" value="@Model?.TotalHectares" step="0.01" />
+                </div>
+                <div class="form-group">
+                    <label>Farm Type</label>
+                    <select id="FarmType" name="FarmType">
+                        <option value="">Select Type...</option>
+                        <option value="Crop">Crop</option>
+                        <option value="Livestock">Livestock</option>
+                        <option value="Mixed">Mixed</option>
+                        <option value="Orchard">Orchard</option>
+                        <option value="Vegetable">Vegetable</option>
+                        <option value="Rice">Rice</option>
+                        <option value="Corn">Corn</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Soil Type</label>
+                <select id="SoilType" name="SoilType">
+                    <option value="">Select Soil Type...</option>
+                    <option value="Clay">Clay</option>
+                    <option value="Sandy">Sandy</option>
+                    <option value="Loam">Loam</option>
+                    <option value="Silt">Silt</option>
+                    <option value="Peat">Peat</option>
+                    <option value="Chalk">Chalk</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <div class="checkbox-group">
+                    <input type="checkbox" id="IsActive" name="IsActive" value="true" checked />
+                    <label for="IsActive">Active Farm</label>
+                </div>
+            </div>
+
+            <div class="btn-group">
+                <button type="submit" class="btn-submit">
+                    <i class="fas fa-save"></i> Create Farm
+                </button>
+                <a href="/Farm" class="btn-cancel">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</body>
+</html>
