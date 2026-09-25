@@ -1,0 +1,137 @@
+@model FarmFlow.Web.Models.Quotation
+@{
+    ViewData["Title"] = $"Quotation {Model.QuotationNumber}";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var displayName = !string.IsNullOrEmpty(Model.Customer?.CompanyName)
+        ? Model.Customer!.CompanyName
+        : $"{Model.Customer?.FirstName} {Model.Customer?.LastName}".Trim();
+}
+
+<div class="page-header">
+    <div class="left">
+        <h1><span class="icon">📄</span> @Model.QuotationNumber</h1>
+    </div>
+    <div style="display:flex;gap:8px;">
+        @if (Model.Status != "Converted" && Model.Status != "Rejected" && Model.Status != "Expired")
+        {
+            <form asp-action="ConvertToSalesOrder" asp-route-id="@Model.Id" method="post" style="display:inline;">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn-add" style="background:#28a745;"
+                        onclick="return confirm('Convert this quotation to a Sales Order?');">
+                    <i class="fas fa-exchange-alt"></i> Convert to SO
+                </button>
+            </form>
+        }
+        <a href="/Quotation/Edit/@Model.Id" class="btn-add" style="background:#ffc107;color:#212529;">
+            <i class="fas fa-edit"></i> Edit
+        </a>
+        <a href="/Quotation" class="btn-back"><i class="fas fa-arrow-left"></i> Back</a>
+    </div>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert-success-custom">
+        <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
+    </div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert-danger-custom" style="background:#f8d7da;color:#721c24;padding:12px 18px;border-radius:8px;margin-bottom:16px;">
+        <i class="fas fa-exclamation-circle"></i> @TempData["ErrorMessage"]
+    </div>
+}
+
+<!-- KPI Cards -->
+<div class="kpi-grid">
+    <div class="kpi-card">
+        <span class="kpi-icon"><i class="fas fa-calendar-alt"></i></span>
+        <div class="kpi-label">Quotation Date</div>
+        <div class="kpi-value" style="font-size:20px;">@Model.QuotationDate.ToString("MMM dd, yyyy")</div>
+    </div>
+    <div class="kpi-card" style="border-left-color:var(--primary-light);">
+        <span class="kpi-icon" style="color:var(--primary-light);"><i class="fas fa-hourglass-half"></i></span>
+        <div class="kpi-label">Valid Until</div>
+        <div class="kpi-value" style="font-size:20px;">@(Model.ValidUntilDate?.ToString("MMM dd, yyyy") ?? "-")</div>
+    </div>
+    <div class="kpi-card" style="border-left-color:var(--secondary);">
+        <span class="kpi-icon" style="color:var(--secondary);"><i class="fas fa-tag"></i></span>
+        <div class="kpi-label">Status</div>
+        <div class="kpi-value" style="font-size:20px;">
+            @{
+                var badgeClass = Model.Status switch
+                {
+                    "Draft" => "inactive",
+                    "Sent" => "secondary",
+                    "Accepted" => "active",
+                    "Rejected" => "inactive",
+                    "Converted" => "info",
+                    _ => "secondary"
+                };
+            }
+            <span class="badge-status @badgeClass">@Model.Status</span>
+        </div>
+    </div>
+    <div class="kpi-card" style="border-left-color:#28a745;">
+        <span class="kpi-icon" style="color:#28a745;"><i class="fas fa-money-bill-wave"></i></span>
+        <div class="kpi-label">Total Amount</div>
+        <div class="kpi-value">₱@((Model.TotalAmount ?? 0).ToString("N0"))</div>
+    </div>
+</div>
+
+<!-- Quotation Info -->
+<div class="card-custom" style="padding:24px;margin-bottom:16px;">
+    <h3 style="margin-bottom:16px;font-size:16px;">Quotation Information</h3>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
+        <div><strong>Quotation #:</strong> @Model.QuotationNumber</div>
+        <div><strong>Customer:</strong> @(string.IsNullOrEmpty(displayName) ? "-" : displayName)</div>
+        <div><strong>Sales Rep:</strong> @(Model.SalesRep?.FirstName ?? "-")</div>
+        <div><strong>Quotation Date:</strong> @Model.QuotationDate.ToString("MMM dd, yyyy")</div>
+        <div><strong>Valid Until:</strong> @(Model.ValidUntilDate?.ToString("MMM dd, yyyy") ?? "-")</div>
+        <div><strong>Status:</strong> @Model.Status</div>
+    </div>
+</div>
+
+<!-- Amount Breakdown -->
+<div class="card-custom" style="padding:24px;margin-bottom:16px;">
+    <h3 style="margin-bottom:16px;font-size:16px;">Amount Breakdown</h3>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
+        <div><strong>Subtotal:</strong> ₱@((Model.SubtotalAmount ?? 0).ToString("N2"))</div>
+        <div><strong>Tax:</strong> ₱@((Model.TaxAmount ?? 0).ToString("N2"))</div>
+        <div><strong>Total:</strong> <span style="font-weight:700;color:var(--primary);">₱@((Model.TotalAmount ?? 0).ToString("N2"))</span></div>
+    </div>
+</div>
+
+<!-- Notes -->
+@if (!string.IsNullOrEmpty(Model.Notes))
+{
+    <div class="card-custom" style="padding:24px;margin-bottom:16px;">
+        <h3 style="margin-bottom:16px;font-size:16px;">Notes</h3>
+        <p style="white-space:pre-wrap;">@Model.Notes</p>
+    </div>
+}
+
+<!-- Conversion Info -->
+@if (Model.ConvertedToSOId.HasValue)
+{
+    <div class="card-custom" style="padding:24px;background:#d4edda;border-left:4px solid #28a745;">
+        <h3 style="margin-bottom:12px;font-size:16px;color:#155724;">
+            <i class="fas fa-check-circle"></i> Converted to Sales Order
+        </h3>
+        <p style="color:#155724;margin:0;">
+            This quotation has been converted.
+            <a href="/SalesOrder/Details/@Model.ConvertedToSOId" style="font-weight:700;color:#155724;text-decoration:underline;">
+                View Sales Order →
+            </a>
+        </p>
+    </div>
+}
+
+<!-- Audit Info -->
+<div class="card-custom" style="padding:24px;">
+    <h3 style="margin-bottom:16px;font-size:16px;">Audit Information</h3>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
+        <div><strong>Created:</strong> @Model.CreatedDateTime.ToString("MMM dd, yyyy hh:mm tt")</div>
+        <div><strong>Modified:</strong> @(Model.ModifiedDateTime?.ToString("MMM dd, yyyy hh:mm tt") ?? "-")</div>
+    </div>
+</div>

@@ -1,0 +1,86 @@
+@model FarmFlow.Web.Models.CrmInteraction
+@{
+    ViewData["Title"] = "Log Interaction";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var customers = ViewBag.Customers as List<FarmFlow.Web.Models.Customer> ?? new();
+}
+
+<div class="page-header">
+    <div class="left">
+        <h1><span class="icon">💬</span> Log Interaction</h1>
+    </div>
+    <a href="/Crm" class="btn-back">
+        <i class="fas fa-arrow-left"></i> Back to List
+    </a>
+</div>
+
+<div class="card-custom" style="padding:24px;">
+    <form asp-action="Create" method="post">
+        @Html.AntiForgeryToken()
+        <div asp-validation-summary="ModelOnly" style="color:#dc3545;margin-bottom:12px;"></div>
+
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px;">
+            <div style="grid-column:1/-1;">
+                <label style="font-size:13px;font-weight:600;display:block;margin-bottom:5px;">Customer *</label>
+                <select asp-for="CustomerId" style="width:100%;padding:8px 12px;border:1px solid #ddd;border-radius:6px;">
+                    <option value="">-- Select Customer --</option>
+                    @foreach (var c in customers)
+                    {
+                        <option value="@c.Id">@c.CompanyName</option>
+                    }
+                </select>
+                <span asp-validation-for="CustomerId" style="color:#dc3545;font-size:12px;"></span>
+            </div>
+            <div>
+                <label style="font-size:13px;font-weight:600;display:block;margin-bottom:5px;">Interaction Type *</label>
+                <select asp-for="InteractionType" style="width:100%;padding:8px 12px;border:1px solid #ddd;border-radius:6px;">
+                    <option value="">-- Select Type --</option>
+                    <option value="Call">Call</option>
+                    <option value="Email">Email</option>
+                    <option value="Meeting">Meeting</option>
+                    <option value="Complaint">Complaint</option>
+                    <option value="Follow-up">Follow-up</option>
+                </select>
+                <span asp-validation-for="InteractionType" style="color:#dc3545;font-size:12px;"></span>
+            </div>
+            <div>
+                <label style="font-size:13px;font-weight:600;display:block;margin-bottom:5px;">Interaction Date *</label>
+                <input asp-for="InteractionDate" type="date"
+                       value="@DateTime.Now.ToString("yyyy-MM-dd")"
+                       style="width:100%;padding:8px 12px;border:1px solid #ddd;border-radius:6px;" />
+            </div>
+            <div style="grid-column:1/-1;">
+                <label style="font-size:13px;font-weight:600;display:block;margin-bottom:5px;">Subject</label>
+                <input asp-for="Subject" placeholder="e.g., Discussed Q4 pricing"
+                       style="width:100%;padding:8px 12px;border:1px solid #ddd;border-radius:6px;" />
+            </div>
+            <div style="grid-column:1/-1;">
+                <label style="font-size:13px;font-weight:600;display:block;margin-bottom:5px;">Details</label>
+                <textarea asp-for="Details" rows="5"
+                          placeholder="Details of the interaction..."
+                          style="width:100%;padding:8px 12px;border:1px solid #ddd;border-radius:6px;"></textarea>
+            </div>
+            <div>
+                <label style="font-size:13px;font-weight:600;display:block;margin-bottom:5px;">Next Follow-up Date</label>
+                <input asp-for="NextFollowUpDate" type="date"
+                       style="width:100%;padding:8px 12px;border:1px solid #ddd;border-radius:6px;" />
+                <small style="color:var(--text-muted);font-size:12px;">Set a reminder for next contact.</small>
+            </div>
+            <div>
+                <label style="display:flex;align-items:center;gap:8px;font-size:14px;margin-top:26px;">
+                    <input asp-for="IsResolved" type="checkbox" />
+                    <span>Mark as Resolved</span>
+                </label>
+            </div>
+        </div>
+
+        <div style="margin-top:24px;display:flex;gap:10px;">
+            <button type="submit" class="btn-add"><i class="fas fa-save"></i> Save Interaction</button>
+            <a href="/Crm" class="btn-back"><i class="fas fa-times"></i> Cancel</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

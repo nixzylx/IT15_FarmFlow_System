@@ -1,0 +1,89 @@
+@model FarmFlow.Web.Models.Expense
+@{
+    ViewData["Title"] = "New Expense";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="page-header">
+    <div class="left">
+        <h1><span class="icon">🧾</span> New Expense</h1>
+    </div>
+    <a href="/Expense" class="btn-back">
+        <i class="fas fa-arrow-left"></i> Back to List
+    </a>
+</div>
+
+<div class="card-custom" style="padding:24px;">
+    <form asp-action="Create" method="post">
+        @Html.AntiForgeryToken()
+        <div asp-validation-summary="ModelOnly" style="color:#dc3545;margin-bottom:12px;"></div>
+
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px;">
+            <div>
+                <label style="font-size:13px;font-weight:600;display:block;margin-bottom:5px;">Expense # *</label>
+                <input asp-for="ExpenseNumber" readonly
+                       style="width:100%;padding:8px 12px;border:1px solid #ddd;border-radius:6px;background:#f8f9fa;" />
+                <span asp-validation-for="ExpenseNumber" style="color:#dc3545;font-size:12px;"></span>
+            </div>
+            <div>
+                <label style="font-size:13px;font-weight:600;display:block;margin-bottom:5px;">Expense Date *</label>
+                <input asp-for="ExpenseDate" type="date" value="@DateTime.Now.ToString("yyyy-MM-dd")"
+                       style="width:100%;padding:8px 12px;border:1px solid #ddd;border-radius:6px;" />
+                <span asp-validation-for="ExpenseDate" style="color:#dc3545;font-size:12px;"></span>
+            </div>
+            <div>
+                <label style="font-size:13px;font-weight:600;display:block;margin-bottom:5px;">Category *</label>
+                <select asp-for="ExpenseCategoryId" asp-items="ViewBag.Categories"
+                        style="width:100%;padding:8px 12px;border:1px solid #ddd;border-radius:6px;">
+                    <option value="">-- Select Category --</option>
+                </select>
+                <span asp-validation-for="ExpenseCategoryId" style="color:#dc3545;font-size:12px;"></span>
+            </div>
+            <div>
+                <label style="font-size:13px;font-weight:600;display:block;margin-bottom:5px;">Amount (₱) *</label>
+                <input asp-for="Amount" type="number" step="0.01" min="0"
+                       style="width:100%;padding:8px 12px;border:1px solid #ddd;border-radius:6px;" />
+                <span asp-validation-for="Amount" style="color:#dc3545;font-size:12px;"></span>
+            </div>
+            <div>
+                <label style="font-size:13px;font-weight:600;display:block;margin-bottom:5px;">Vendor / Paid To</label>
+                <input asp-for="Vendor" placeholder="e.g., Meralco, Juan's Fuel Station"
+                       style="width:100%;padding:8px 12px;border:1px solid #ddd;border-radius:6px;" />
+            </div>
+            <div>
+                <label style="font-size:13px;font-weight:600;display:block;margin-bottom:5px;">Reference # (OR#, Invoice#)</label>
+                <input asp-for="ReferenceNumber"
+                       style="width:100%;padding:8px 12px;border:1px solid #ddd;border-radius:6px;" />
+            </div>
+            <div>
+                <label style="font-size:13px;font-weight:600;display:block;margin-bottom:5px;">Link to Farm (optional)</label>
+                <select asp-for="FarmId" asp-items="ViewBag.Farms"
+                        style="width:100%;padding:8px 12px;border:1px solid #ddd;border-radius:6px;">
+                    <option value="">-- None --</option>
+                </select>
+            </div>
+            <div>
+                <label style="font-size:13px;font-weight:600;display:block;margin-bottom:5px;">Link to Production Batch (optional)</label>
+                <select asp-for="ProductionBatchId" asp-items="ViewBag.ProductionBatches"
+                        style="width:100%;padding:8px 12px;border:1px solid #ddd;border-radius:6px;">
+                    <option value="">-- None --</option>
+                </select>
+            </div>
+            <div style="grid-column:1/-1;">
+                <label style="font-size:13px;font-weight:600;display:block;margin-bottom:5px;">Description</label>
+                <textarea asp-for="Description" rows="3"
+                          placeholder="What was this expense for?"
+                          style="width:100%;padding:8px 12px;border:1px solid #ddd;border-radius:6px;"></textarea>
+            </div>
+        </div>
+
+        <div style="margin-top:24px;display:flex;gap:10px;">
+            <button type="submit" class="btn-add"><i class="fas fa-save"></i> Save Expense</button>
+            <a href="/Expense" class="btn-back"><i class="fas fa-times"></i> Cancel</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

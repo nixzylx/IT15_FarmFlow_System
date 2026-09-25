@@ -1,0 +1,135 @@
+@{
+    ViewData["Title"] = "Sales Report";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var orders = ViewBag.Orders as List<FarmFlow.Web.Models.SalesOrder> ?? new();
+    var customers = ViewBag.Customers as List<FarmFlow.Web.Models.Customer> ?? new();
+}
+
+<div class="page-header">
+    <div class="left">
+        <h1><span class="icon">📈</span> Sales Report</h1>
+    </div>
+    <a href="/Reports" class="btn-back"><i class="fas fa-arrow-left"></i> Back to Reports</a>
+</div>
+
+<!-- Filter -->
+<div class="card-custom mb-4">
+    <form method="get" asp-action="Sales" style="display:flex;gap:12px;flex-wrap:wrap;align-items:end;">
+        <div style="min-width:160px;">
+            <label style="font-size:13px;font-weight:600;display:block;margin-bottom:5px;">From</label>
+            <input type="date" name="fromDate" value="@ViewBag.FromDate"
+                   style="width:100%;padding:8px 12px;border:1px solid #ddd;border-radius:6px;" />
+        </div>
+        <div style="min-width:160px;">
+            <label style="font-size:13px;font-weight:600;display:block;margin-bottom:5px;">To</label>
+            <input type="date" name="toDate" value="@ViewBag.ToDate"
+                   style="width:100%;padding:8px 12px;border:1px solid #ddd;border-radius:6px;" />
+        </div>
+        <div style="min-width:220px;">
+            <label style="font-size:13px;font-weight:600;display:block;margin-bottom:5px;">Customer</label>
+            <select name="customerId" style="width:100%;padding:8px 12px;border:1px solid #ddd;border-radius:6px;">
+                <option value="">All Customers</option>
+                @foreach (var c in customers)
+                {
+                    <option value="@c.Id" selected="@(ViewBag.CustomerId == c.Id)">@c.CompanyName</option>
+                }
+            </select>
+        </div>
+        <div style="display:flex;gap:8px;">
+            <button type="submit" class="btn-add"><i class="fas fa-chart-line"></i> Apply</button>
+            <a href="/Reports/Sales" class="btn-back"><i class="fas fa-redo"></i> Reset</a>
+        </div>
+    </form>
+</div>
+
+<!-- KPIs -->
+<div class="kpi-grid">
+    <div class="kpi-card">
+        <span class="kpi-icon"><i class="fas fa-chart-line"></i></span>
+        <div class="kpi-label">Total Sales</div>
+        <div class="kpi-value">₱@ViewBag.TotalSales.ToString("N0")</div>
+    </div>
+    <div class="kpi-card" style="border-left-color:var(--primary-light);">
+        <span class="kpi-icon" style="color:var(--primary-light);"><i class="fas fa-shopping-cart"></i></span>
+        <div class="kpi-label">Orders</div>
+        <div class="kpi-value">@ViewBag.OrderCount</div>
+    </div>
+    <div class="kpi-card" style="border-left-color:var(--secondary);">
+        <span class="kpi-icon" style="color:var(--secondary);"><i class="fas fa-calculator"></i></span>
+        <div class="kpi-label">Average Order</div>
+        <div class="kpi-value">₱@ViewBag.AvgOrderValue.ToString("N0")</div>
+    </div>
+</div>
+
+<!-- Top Customers Chart -->
+<div class="card-custom" style="padding:20px;margin-top:16px;">
+    <h3 style="font-size:15px;margin-bottom:16px;">Top 5 Customers by Revenue</h3>
+    <div class="chart-container" style="height:280px;">
+        <canvas id="topCustomersChart"></canvas>
+    </div>
+</div>
+
+<!-- Orders Table -->
+<div class="card-custom" style="margin-top:16px;">
+    <div class="table-wrapper">
+        <table class="table-custom">
+            <thead>
+                <tr>
+                    <th>SO #</th>
+                    <th>Date</th>
+                    <th>Customer</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                    <th>Payment</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (orders.Any())
+                {
+                    foreach (var o in orders)
+                    {
+                        <tr>
+                            <td><a href="/SalesOrder/Details/@o.Id" style="color:var(--primary);font-weight:600;">@o.SONumber</a></td>
+                            <td>@o.OrderDate.ToString("MMM dd, yyyy")</td>
+                            <td>@(o.Customer?.CompanyName ?? "-")</td>
+                            <td>₱@((o.TotalAmount ?? 0).ToString("N2"))</td>
+                            <td><span class="badge-status info">@o.Status</span></td>
+                            <td><span class="badge-status secondary">@o.PaymentStatus</span></td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:20px;">No orders in this range.</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            new Chart(document.getElementById('topCustomersChart'), {
+                type: 'bar',
+                data: {
+                    labels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.TopCustomerLabels)),
+                    datasets: [{
+                        label: 'Revenue (₱)',
+                        data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.TopCustomerValues)),
+                        backgroundColor: '#0d6e3e',
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, ticks: { callback: v => '₱' + v.toLocaleString() } }
+                    }
+                }
+            });
+        });
+    </script>
+}

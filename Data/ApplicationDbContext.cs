@@ -36,6 +36,11 @@ public DbSet<SalesOrderItem> SalesOrderItems { get; set; }
 public DbSet<CrmInteraction> CrmInteractions { get; set; }
 public DbSet<Quotation> Quotations { get; set; }
 
+//Finance
+public DbSet<Expense> Expenses { get; set; }
+public DbSet<ExpenseCategory> ExpenseCategories { get; set; }
+public DbSet<Payment> Payments { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -198,6 +203,81 @@ modelBuilder.Entity<Quotation>()
     new Customer { Id = 1, CustomerCode = "CUST-001", CustomerType = "Wholesaler", CompanyName = "Green Harvest Inc.", FirstName = "Maria", LastName = "Santos", Email = "maria@greenharvest.com", PhoneNumber = "09181234567", Address = "123 Market St., Manila", PaymentTerms = "Net 30", DiscountTier = "Gold", IsActive = true, CreatedDateTime = new DateTime(2024, 1, 1) },
     new Customer { Id = 2, CustomerCode = "CUST-002", CustomerType = "Retailer", CompanyName = "Fresh Mart Philippines", FirstName = "Juan", LastName = "Reyes", Email = "juan@freshmart.ph", PhoneNumber = "09191234567", Address = "456 Retail Ave., Quezon City", PaymentTerms = "Net 15", DiscountTier = "Silver", IsActive = true, CreatedDateTime = new DateTime(2024, 1, 1) },
     new Customer { Id = 3, CustomerCode = "CUST-003", CustomerType = "Exporter", CompanyName = "Asia Agri Exports", FirstName = "Pedro", LastName = "Cruz", Email = "pedro@asiaagri.com", PhoneNumber = "09201234567", Address = "789 Export Blvd., Cebu", PaymentTerms = "Net 60", DiscountTier = "Gold", IsActive = true, CreatedDateTime = new DateTime(2024, 1, 1) }
+);
+
+// ============================================
+// FINANCE — Unique constraints
+// ============================================
+modelBuilder.Entity<Expense>().HasIndex(e => e.ExpenseNumber)
+    .IsUnique().HasDatabaseName("IX_Expense_Number");
+
+modelBuilder.Entity<ExpenseCategory>().HasIndex(c => c.Name)
+    .IsUnique().HasDatabaseName("IX_ExpenseCategory_Name");
+
+modelBuilder.Entity<Payment>().HasIndex(p => p.PaymentNumber)
+    .IsUnique().HasDatabaseName("IX_Payment_Number");
+
+// ============================================
+// FINANCE — Relationships (Restrict)
+// ============================================
+modelBuilder.Entity<Expense>()
+    .HasOne(e => e.ExpenseCategory)
+    .WithMany(c => c.Expenses)
+    .HasForeignKey(e => e.ExpenseCategoryId)
+    .OnDelete(DeleteBehavior.Restrict);
+
+modelBuilder.Entity<Expense>()
+    .HasOne(e => e.Farm)
+    .WithMany()
+    .HasForeignKey(e => e.FarmId)
+    .OnDelete(DeleteBehavior.Restrict);
+
+modelBuilder.Entity<Expense>()
+    .HasOne(e => e.ProductionBatch)
+    .WithMany()
+    .HasForeignKey(e => e.ProductionBatchId)
+    .OnDelete(DeleteBehavior.Restrict);
+
+modelBuilder.Entity<Expense>()
+    .HasOne(e => e.ApprovedByUser)
+    .WithMany()
+    .HasForeignKey(e => e.ApprovedByUserId)
+    .OnDelete(DeleteBehavior.Restrict);
+
+modelBuilder.Entity<Expense>()
+    .HasOne(e => e.CreatedByUser)
+    .WithMany()
+    .HasForeignKey(e => e.CreatedByUserId)
+    .OnDelete(DeleteBehavior.Restrict);
+
+modelBuilder.Entity<Payment>()
+    .HasOne(p => p.SalesOrder)
+    .WithMany()
+    .HasForeignKey(p => p.SalesOrderId)
+    .OnDelete(DeleteBehavior.Restrict);
+
+modelBuilder.Entity<Payment>()
+    .HasOne(p => p.PurchaseOrder)
+    .WithMany()
+    .HasForeignKey(p => p.PurchaseOrderId)
+    .OnDelete(DeleteBehavior.Restrict);
+
+modelBuilder.Entity<Payment>()
+    .HasOne(p => p.CreatedByUser)
+    .WithMany()
+    .HasForeignKey(p => p.CreatedByUserId)
+    .OnDelete(DeleteBehavior.Restrict);
+
+// ============================================
+// FINANCE — Seed Expense Categories
+// ============================================
+modelBuilder.Entity<ExpenseCategory>().HasData(
+    new ExpenseCategory { Id = 1, Name = "Utilities", Description = "Electricity, water, internet", CreatedDateTime = new DateTime(2024, 1, 1) },
+    new ExpenseCategory { Id = 2, Name = "Fuel & Transport", Description = "Diesel, gasoline, delivery costs", CreatedDateTime = new DateTime(2024, 1, 1) },
+    new ExpenseCategory { Id = 3, Name = "Labor", Description = "Wages, contractor fees", CreatedDateTime = new DateTime(2024, 1, 1) },
+    new ExpenseCategory { Id = 4, Name = "Seeds & Inputs", Description = "Seeds, fertilizers, pesticides", CreatedDateTime = new DateTime(2024, 1, 1) },
+    new ExpenseCategory { Id = 5, Name = "Equipment & Maintenance", Description = "Repairs, tools, spare parts", CreatedDateTime = new DateTime(2024, 1, 1) },
+    new ExpenseCategory { Id = 6, Name = "Miscellaneous", Description = "Other operational expenses", CreatedDateTime = new DateTime(2024, 1, 1) }
 );
 
         // ============================================

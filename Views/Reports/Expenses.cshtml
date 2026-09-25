@@ -1,0 +1,141 @@
+@{
+    ViewData["Title"] = "Expense Report";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var expenses = ViewBag.Expenses as List<FarmFlow.Web.Models.Expense> ?? new();
+    var categories = ViewBag.Categories as List<FarmFlow.Web.Models.ExpenseCategory> ?? new();
+}
+
+<div class="page-header">
+    <div class="left">
+        <h1><span class="icon">💸</span> Expense Report</h1>
+    </div>
+    <a href="/Reports" class="btn-back"><i class="fas fa-arrow-left"></i> Back to Reports</a>
+</div>
+
+<div class="card-custom mb-4">
+    <form method="get" asp-action="Expenses" style="display:flex;gap:12px;flex-wrap:wrap;align-items:end;">
+        <div style="min-width:160px;">
+            <label style="font-size:13px;font-weight:600;display:block;margin-bottom:5px;">From</label>
+            <input type="date" name="fromDate" value="@ViewBag.FromDate"
+                   style="width:100%;padding:8px 12px;border:1px solid #ddd;border-radius:6px;" />
+        </div>
+        <div style="min-width:160px;">
+            <label style="font-size:13px;font-weight:600;display:block;margin-bottom:5px;">To</label>
+            <input type="date" name="toDate" value="@ViewBag.ToDate"
+                   style="width:100%;padding:8px 12px;border:1px solid #ddd;border-radius:6px;" />
+        </div>
+        <div style="min-width:220px;">
+            <label style="font-size:13px;font-weight:600;display:block;margin-bottom:5px;">Category</label>
+            <select name="categoryId" style="width:100%;padding:8px 12px;border:1px solid #ddd;border-radius:6px;">
+                <option value="">All Categories</option>
+                @foreach (var c in categories)
+                {
+                    <option value="@c.Id" selected="@(ViewBag.CategoryId == c.Id)">@c.Name</option>
+                }
+            </select>
+        </div>
+        <div style="display:flex;gap:8px;">
+            <button type="submit" class="btn-add"><i class="fas fa-filter"></i> Apply</button>
+            <a href="/Reports/Expenses" class="btn-back"><i class="fas fa-redo"></i> Reset</a>
+        </div>
+    </form>
+</div>
+
+<div class="kpi-grid">
+    <div class="kpi-card" style="border-left-color:#dc3545;">
+        <span class="kpi-icon" style="color:#dc3545;"><i class="fas fa-receipt"></i></span>
+        <div class="kpi-label">Total Expenses</div>
+        <div class="kpi-value">₱@ViewBag.TotalAmount.ToString("N0")</div>
+    </div>
+    <div class="kpi-card">
+        <span class="kpi-icon"><i class="fas fa-list"></i></span>
+        <div class="kpi-label">Records</div>
+        <div class="kpi-value">@ViewBag.ExpenseCount</div>
+    </div>
+    <div class="kpi-card" style="border-left-color:var(--secondary);">
+        <span class="kpi-icon" style="color:var(--secondary);"><i class="fas fa-calculator"></i></span>
+        <div class="kpi-label">Average</div>
+        <div class="kpi-value">₱@ViewBag.AvgExpense.ToString("N0")</div>
+    </div>
+</div>
+
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(400px,1fr));gap:16px;margin-top:16px;">
+    <div class="card-custom" style="padding:20px;">
+        <h3 style="font-size:15px;margin-bottom:16px;">By Category</h3>
+        <div class="chart-container"><canvas id="catChart"></canvas></div>
+    </div>
+    <div class="card-custom" style="padding:20px;">
+        <h3 style="font-size:15px;margin-bottom:16px;">Monthly Trend</h3>
+        <div class="chart-container"><canvas id="trendChart"></canvas></div>
+    </div>
+</div>
+
+<div class="card-custom" style="margin-top:16px;">
+    <div class="table-wrapper">
+        <table class="table-custom">
+            <thead>
+                <tr>
+                    <th>EXP #</th>
+                    <th>Date</th>
+                    <th>Category</th>
+                    <th>Vendor</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var e in expenses)
+                {
+                    <tr>
+                        <td><span class="badge-status info">@e.ExpenseNumber</span></td>
+                        <td>@e.ExpenseDate.ToString("MMM dd, yyyy")</td>
+                        <td>@(e.ExpenseCategory?.Name ?? "-")</td>
+                        <td>@(e.Vendor ?? "-")</td>
+                        <td><strong>₱@e.Amount.ToString("N2")</strong></td>
+                        <td><span class="badge-status secondary">@e.Status</span></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            new Chart(document.getElementById('catChart'), {
+                type: 'pie',
+                data: {
+                    labels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.CategoryLabels)),
+                    datasets: [{
+                        data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.CategoryValues)),
+                        backgroundColor: ['#0d6e3e', '#12a5da', '#f4a261', '#e76f51', '#79c25c', '#6c757d']
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+            });
+
+            new Chart(document.getElementById('trendChart'), {
+                type: 'line',
+                data: {
+                    labels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.MonthlyLabels)),
+                    datasets: [{
+                        label: 'Expenses (₱)',
+                        data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.MonthlyValues)),
+                        borderColor: '#dc3545',
+                        backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                        tension: 0.3,
+                        fill: true,
+                        borderWidth: 3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true, ticks: { callback: v => '₱' + v.toLocaleString() } } }
+                }
+            });
+        });
+    </script>
+}

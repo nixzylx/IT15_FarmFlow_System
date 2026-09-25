@@ -1,0 +1,107 @@
+@{
+    ViewData["Title"] = "Customer Report";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var performance = ViewBag.Performance as IEnumerable<dynamic> ?? Enumerable.Empty<dynamic>();
+}
+
+<div class="page-header">
+    <div class="left">
+        <h1><span class="icon">👥</span> Customer Report</h1>
+    </div>
+    <a href="/Reports" class="btn-back"><i class="fas fa-arrow-left"></i> Back to Reports</a>
+</div>
+
+<div class="kpi-grid">
+    <div class="kpi-card">
+        <span class="kpi-icon"><i class="fas fa-hand-holding-usd"></i></span>
+        <div class="kpi-label">Total Billed</div>
+        <div class="kpi-value">₱@ViewBag.TotalBilled.ToString("N0")</div>
+    </div>
+    <div class="kpi-card" style="border-left-color:#28a745;">
+        <span class="kpi-icon" style="color:#28a745;"><i class="fas fa-check-circle"></i></span>
+        <div class="kpi-label">Total Paid</div>
+        <div class="kpi-value">₱@ViewBag.TotalPaid.ToString("N0")</div>
+    </div>
+    <div class="kpi-card" style="border-left-color:#f4a261;">
+        <span class="kpi-icon" style="color:#f4a261;"><i class="fas fa-file-invoice-dollar"></i></span>
+        <div class="kpi-label">Outstanding</div>
+        <div class="kpi-value">₱@ViewBag.TotalOutstanding.ToString("N0")</div>
+    </div>
+</div>
+
+<div class="card-custom" style="padding:20px;margin-top:16px;">
+    <h3 style="font-size:15px;margin-bottom:16px;">Top 5 Customers by Billed Amount</h3>
+    <div class="chart-container" style="height:280px;">
+        <canvas id="topCustChart"></canvas>
+    </div>
+</div>
+
+<div class="card-custom" style="margin-top:16px;">
+    <div class="table-wrapper">
+        <table class="table-custom">
+            <thead>
+                <tr>
+                    <th>Customer</th>
+                    <th>Type</th>
+                    <th>Orders</th>
+                    <th>Total Billed</th>
+                    <th>Paid</th>
+                    <th>Outstanding</th>
+                    <th>Credit Limit</th>
+                    <th>Utilization</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var p in performance)
+                {
+                    var util = (decimal)p.CreditUtilization;
+                    var utilClass = util >= 90 ? "inactive" : util >= 70 ? "warning" : "active";
+                    <tr>
+                        <td><strong>@p.CompanyName</strong></td>
+                        <td><span class="badge-status secondary">@p.CustomerType</span></td>
+                        <td>@p.OrderCount</td>
+                        <td><strong>₱@(((decimal)p.TotalBilled).ToString("N2"))</strong></td>
+                        <td>₱@(((decimal)p.TotalPaid).ToString("N2"))</td>
+                        <td>
+                            @if ((decimal)p.Outstanding > 0)
+                            {
+                                <span style="color:#dc3545;font-weight:600;">₱@(((decimal)p.Outstanding).ToString("N2"))</span>
+                            }
+                            else
+                            {
+                                <span style="color:#28a745;">₱0.00</span>
+                            }
+                        </td>
+                        <td>₱@(((decimal)p.CreditLimit).ToString("N2"))</td>
+                        <td><span class="badge-status @utilClass">@util.ToString("N1")%</span></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            new Chart(document.getElementById('topCustChart'), {
+                type: 'bar',
+                data: {
+                    labels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.TopCustomerLabels)),
+                    datasets: [{
+                        label: 'Billed (₱)',
+                        data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.TopCustomerValues)),
+                        backgroundColor: '#28a745',
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true, ticks: { callback: v => '₱' + v.toLocaleString() } } }
+                }
+            });
+        });
+    </script>
+}

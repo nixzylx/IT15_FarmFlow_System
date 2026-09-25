@@ -1,0 +1,75 @@
+@model FarmFlow.Web.Models.ExpenseCategory
+@{
+    ViewData["Title"] = "Delete Expense Category";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    bool hasExpenses = Model.Expenses != null && Model.Expenses.Any();
+}
+
+<div class="page-header">
+    <div class="left">
+        <h1><span class="icon">⚠️</span> Delete Expense Category</h1>
+    </div>
+    <a href="/ExpenseCategory" class="btn-back">
+        <i class="fas fa-arrow-left"></i> Back to List
+    </a>
+</div>
+
+<div class="card-custom" style="padding:24px;max-width:640px;">
+    @if (hasExpenses)
+    {
+        <div class="alert-danger-custom" style="margin-bottom:20px;">
+            <i class="fas fa-ban"></i>
+            <div>
+                <strong>Cannot Delete</strong>
+                <p style="margin:4px 0 0 0;font-size:13px;">
+                    This category has <strong>@Model.Expenses.Count</strong> expense(s) recorded against it.
+                    Deactivate it instead to preserve history.
+                </p>
+            </div>
+        </div>
+
+        <form asp-action="Edit" method="get" style="display:inline;">
+            <input type="hidden" name="id" value="@Model.Id" />
+        </form>
+
+        <div style="display:flex;gap:10px;">
+            <a href="/ExpenseCategory/Edit/@Model.Id" class="btn-add">
+                <i class="fas fa-edit"></i> Edit Instead
+            </a>
+            <a href="/ExpenseCategory" class="btn-back">
+                <i class="fas fa-arrow-left"></i> Back
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="alert-danger-custom" style="background:#fff3cd;color:#856404;margin-bottom:20px;">
+            <i class="fas fa-exclamation-triangle"></i>
+            <div>
+                <strong>Warning:</strong> This action cannot be undone.
+            </div>
+        </div>
+
+        <p style="font-size:15px;margin-bottom:16px;">Are you sure you want to delete this category?</p>
+
+        <div style="background:#f8f9fa;padding:16px;border-radius:8px;margin-bottom:20px;">
+            <div style="margin-bottom:6px;"><strong>Name:</strong> @Model.Name</div>
+            <div style="margin-bottom:6px;"><strong>Description:</strong> @(Model.Description ?? "-")</div>
+            <div><strong>Status:</strong> @(Model.IsActive ? "Active" : "Inactive")</div>
+        </div>
+
+        <form asp-action="Delete" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Id" />
+            <div style="display:flex;gap:10px;">
+                <button type="submit" class="btn-add" style="background:#dc3545;"
+                        onclick="return confirm('Permanently delete this category?');">
+                    <i class="fas fa-trash"></i> Confirm Delete
+                </button>
+                <a href="/ExpenseCategory" class="btn-back">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
+            </div>
+        </form>
+    }
+</div>

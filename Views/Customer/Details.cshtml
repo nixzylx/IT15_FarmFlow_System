@@ -1,0 +1,117 @@
+@model FarmFlow.Web.Models.Customer
+@{
+    ViewData["Title"] = "Customer Details";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var displayName = !string.IsNullOrEmpty(Model.CompanyName)
+        ? Model.CompanyName
+        : $"{Model.FirstName} {Model.LastName}".Trim();
+    var availableCredit = (Model.CreditLimit ?? 0) - (Model.CurrentBalance ?? 0);
+}
+
+<div class="page-header">
+    <div class="left">
+        <h1><span class="icon">👤</span> @displayName</h1>
+    </div>
+    <div style="display:flex;gap:8px;">
+        <a href="/Customer/Edit/@Model.Id" class="btn-add" style="background:#ffc107;color:#212529;">
+            <i class="fas fa-edit"></i> Edit
+        </a>
+        <a href="/Customer" class="btn-back">
+            <i class="fas fa-arrow-left"></i> Back
+        </a>
+    </div>
+</div>
+
+<!-- KPI Cards -->
+<div class="kpi-grid">
+    <div class="kpi-card">
+        <span class="kpi-icon"><i class="fas fa-shopping-cart"></i></span>
+        <div class="kpi-label">Sales Orders</div>
+        <div class="kpi-value">@(Model.SalesOrders?.Count ?? 0)</div>
+    </div>
+    <div class="kpi-card" style="border-left-color:var(--primary-light);">
+        <span class="kpi-icon" style="color:var(--primary-light);"><i class="fas fa-file-invoice"></i></span>
+        <div class="kpi-label">Quotations</div>
+        <div class="kpi-value">@(Model.Quotations?.Count ?? 0)</div>
+    </div>
+    <div class="kpi-card" style="border-left-color:var(--secondary);">
+        <span class="kpi-icon" style="color:var(--secondary);"><i class="fas fa-comments"></i></span>
+        <div class="kpi-label">Interactions</div>
+        <div class="kpi-value">@(Model.CrmInteractions?.Count ?? 0)</div>
+    </div>
+    <div class="kpi-card" style="border-left-color:#f4a261;">
+        <span class="kpi-icon" style="color:#f4a261;"><i class="fas fa-coins"></i></span>
+        <div class="kpi-label">Available Credit</div>
+        <div class="kpi-value">₱@availableCredit.ToString("N0")</div>
+    </div>
+</div>
+
+<!-- Customer Info -->
+<div class="card-custom" style="padding:24px;">
+    <h3 style="margin-bottom:16px;font-size:16px;">Customer Information</h3>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
+        <div><strong>Code:</strong> @Model.CustomerCode</div>
+        <div><strong>Type:</strong> @(Model.CustomerType ?? "-")</div>
+        <div>
+            <strong>Status:</strong>
+            @if (Model.IsActive)
+            {
+                <span class="badge-status active">Active</span>
+            }
+            else
+            {
+                <span class="badge-status inactive">Inactive</span>
+            }
+        </div>
+        <div><strong>Contact:</strong> @Model.FirstName @Model.LastName</div>
+        <div><strong>Email:</strong> @(Model.Email ?? "-")</div>
+        <div><strong>Phone:</strong> @(Model.PhoneNumber ?? "-")</div>
+        <div><strong>Company:</strong> @(Model.CompanyName ?? "-")</div>
+        <div><strong>Payment Terms:</strong> @(Model.PaymentTerms ?? "-")</div>
+        <div><strong>Discount Tier:</strong> @(Model.DiscountTier ?? "-")</div>
+        <div><strong>Tax ID:</strong> @(Model.TaxId ?? "-")</div>
+        <div><strong>Credit Limit:</strong> ₱@((Model.CreditLimit ?? 0).ToString("N2"))</div>
+        <div><strong>Current Balance:</strong> ₱@((Model.CurrentBalance ?? 0).ToString("N2"))</div>
+        <div>
+            <strong>Sales Rep:</strong>
+            @(Model.AssignedSalesRep != null
+                ? $"{Model.AssignedSalesRep.FirstName} {Model.AssignedSalesRep.LastName}"
+                : "-")
+        </div>
+        <div style="grid-column:1/-1;"><strong>Address:</strong> @(Model.Address ?? "-")</div>
+        <div style="grid-column:1/-1;"><strong>Notes:</strong> @(Model.Notes ?? "-")</div>
+        <div><strong>Created:</strong> @Model.CreatedDateTime.ToString("MMM dd, yyyy hh:mm tt")</div>
+        <div><strong>Modified:</strong> @(Model.ModifiedDateTime?.ToString("MMM dd, yyyy hh:mm tt") ?? "-")</div>
+    </div>
+</div>
+
+<!-- Related Sales Orders -->
+@if (Model.SalesOrders != null && Model.SalesOrders.Any())
+{
+    <div class="card-custom" style="padding:24px;margin-top:16px;">
+        <h3 style="margin-bottom:16px;font-size:16px;">Recent Sales Orders</h3>
+        <div class="table-wrapper">
+            <table class="table-custom">
+                <thead>
+                    <tr>
+                        <th>SO #</th>
+                        <th>Date</th>
+                        <th>Total</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var so in Model.SalesOrders.OrderByDescending(s => s.OrderDate).Take(5))
+                    {
+                        <tr>
+                            <td><a href="/SalesOrder/Details/@so.Id" style="color:var(--primary);font-weight:600;">@so.SONumber</a></td>
+                            <td>@so.OrderDate.ToString("MMM dd, yyyy")</td>
+                            <td>₱@(so.TotalAmount?.ToString("N2") ?? "0.00")</td>
+                            <td><span class="badge-status info">@so.Status</span></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

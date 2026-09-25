@@ -1,222 +1,201 @@
-@model FarmFlow.Web.Models.PurchaseOrder
+@model FarmFlow.Web.Models.SalesOrder
 @{
-    ViewData["Title"] = "Create Purchase Order";
+    ViewData["Title"] = "New Sales Order";
     Layout = "~/Views/Shared/_Layout.cshtml";
-    var suppliers = ViewBag.Suppliers as List<FarmFlow.Web.Models.Supplier>;
-    var items = ViewBag.Items as List<FarmFlow.Web.Models.InventoryItem>;
+    var customers = ViewBag.Customers as List<FarmFlow.Web.Models.Customer> ?? new();
+    var items = ViewBag.Items as List<FarmFlow.Web.Models.InventoryItem> ?? new();
 }
 
 <div class="page-header">
     <div class="left">
-        <a href="/PurchaseOrder" class="btn-back">
-            <i class="fas fa-arrow-left"></i> Back
-        </a>
-        <h1><span class="icon">➕</span> Create Purchase Order</h1>
+        <h1><span class="icon">🛒</span> New Sales Order</h1>
     </div>
+    <a href="/SalesOrder" class="btn-back">
+        <i class="fas fa-arrow-left"></i> Back to List
+    </a>
 </div>
 
-@if (!ViewData.ModelState.IsValid)
-{
-    <div class="validation-summary">
-        <ul>
-            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
-            {
-                <li>@error.ErrorMessage</li>
-            }
-        </ul>
-    </div>
-}
+<div class="card-custom" style="padding:24px;">
+    <form asp-action="Create" method="post" id="soForm">
+        @Html.AntiForgeryToken()
+        <div asp-validation-summary="ModelOnly" style="color:#dc3545;margin-bottom:12px;"></div>
 
-<form method="post" asp-action="Create" id="poForm">
-    @Html.AntiForgeryToken()
-
-    <div class="card-custom mb-4">
-        <div class="card-header-custom" style="margin-bottom:20px;">
-            <h5><i class="fas fa-info-circle" style="color:var(--primary);margin-right:8px;"></i> Purchase Order Details</h5>
-        </div>
-
-        <div class="form-row-custom">
-            <div class="form-group-custom">
-                <label>PO Number <span class="required">*</span></label>
-                <div class="input-wrapper">
-                    <i class="fas fa-file-invoice icon"></i>
-                    <input type="text" name="PONumber" value="@ViewBag.NextPONumber" readonly style="background:#e9ecef;" />
-                </div>
+        <!-- Header fields -->
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px;">
+            <div>
+                <label style="font-size:13px;font-weight:600;display:block;margin-bottom:5px;">SO # *</label>
+                <input asp-for="SONumber" value="@ViewBag.NextSONumber" readonly
+                       style="width:100%;padding:8px 12px;border:1px solid #ddd;border-radius:6px;background:#f8f9fa;" />
+                <span asp-validation-for="SONumber" style="color:#dc3545;font-size:12px;"></span>
             </div>
-            <div class="form-group-custom">
-                <label>Supplier <span class="required">*</span></label>
-                <div class="input-wrapper">
-                    <i class="fas fa-truck icon"></i>
-                    <select name="SupplierId" required>
-                        <option value="">Select Supplier...</option>
-                        @foreach (var s in suppliers)
-                        {
-                            <option value="@s.Id">@s.CompanyName (@s.SupplierCode)</option>
-                        }
-                    </select>
-                </div>
+            <div>
+                <label style="font-size:13px;font-weight:600;display:block;margin-bottom:5px;">Customer *</label>
+                <select asp-for="CustomerId" style="width:100%;padding:8px 12px;border:1px solid #ddd;border-radius:6px;">
+                    <option value="">-- Select Customer --</option>
+                    @foreach (var c in customers)
+                    {
+                        <option value="@c.Id">@c.CompanyName</option>
+                    }
+                </select>
+                <span asp-validation-for="CustomerId" style="color:#dc3545;font-size:12px;"></span>
             </div>
-        </div>
-
-        <div class="form-row-custom">
-            <div class="form-group-custom">
-                <label>Expected Delivery Date</label>
-                <div class="input-wrapper">
-                    <i class="fas fa-calendar-alt icon"></i>
-                    <input type="date" name="DeliveryExpectedDate" value="@(Model?.DeliveryExpectedDate?.ToString("yyyy-MM-dd"))" />
-                </div>
+            <div>
+                <label style="font-size:13px;font-weight:600;display:block;margin-bottom:5px;">Order Date</label>
+                <input asp-for="OrderDate" type="date" value="@DateTime.Now.ToString("yyyy-MM-dd")"
+                       style="width:100%;padding:8px 12px;border:1px solid #ddd;border-radius:6px;" />
             </div>
-            <div class="form-group-custom">
-                <label>Payment Terms</label>
-                <div class="input-wrapper">
-                    <i class="fas fa-handshake icon"></i>
-                    <select name="PaymentTerms">
-                        <option value="">Select Terms...</option>
-                        <option value="Net 15">Net 15</option>
-                        <option value="Net 30">Net 30</option>
-                        <option value="Net 60">Net 60</option>
-                        <option value="COD">COD</option>
-                        <option value="Prepaid">Prepaid</option>
-                    </select>
-                </div>
+            <div>
+                <label style="font-size:13px;font-weight:600;display:block;margin-bottom:5px;">Required Delivery Date</label>
+                <input asp-for="RequiredDeliveryDate" type="date"
+                       style="width:100%;padding:8px 12px;border:1px solid #ddd;border-radius:6px;" />
+            </div>
+            <div style="grid-column:1/-1;">
+                <label style="font-size:13px;font-weight:600;display:block;margin-bottom:5px;">Delivery Instructions</label>
+                <textarea asp-for="DeliveryInstructions" rows="2"
+                          style="width:100%;padding:8px 12px;border:1px solid #ddd;border-radius:6px;"></textarea>
+            </div>
+            <div style="grid-column:1/-1;">
+                <label style="font-size:13px;font-weight:600;display:block;margin-bottom:5px;">Notes</label>
+                <textarea asp-for="Notes" rows="2"
+                          style="width:100%;padding:8px 12px;border:1px solid #ddd;border-radius:6px;"></textarea>
             </div>
         </div>
 
-        <div class="form-group-custom">
-            <label>Notes</label>
-            <div class="input-wrapper">
-                <i class="fas fa-comment icon"></i>
-                <input type="text" name="Notes" placeholder="Additional instructions..." />
-            </div>
-        </div>
-    </div>
-
-    <!-- Items Section -->
-    <div class="card-custom mb-4">
-        <div class="card-header-custom" style="margin-bottom:20px;">
-            <h5><i class="fas fa-boxes" style="color:var(--secondary);margin-right:8px;"></i> Order Items</h5>
-            <button type="button" class="btn-add" onclick="addRow()" style="background:var(--secondary);">
-                <i class="fas fa-plus"></i> Add Item
-            </button>
-        </div>
-
-        <div class="table-wrapper">
+        <!-- Line items -->
+        <h3 style="margin-top:24px;margin-bottom:12px;font-size:15px;">Order Items</h3>
+        <div class="table-wrapper" style="margin-bottom:12px;">
             <table class="table-custom" id="itemsTable">
                 <thead>
                     <tr>
-                        <th style="width:40%;">Item</th>
+                        <th style="width:45%;">Item</th>
                         <th style="width:15%;">Quantity</th>
                         <th style="width:20%;">Unit Price (₱)</th>
-                        <th style="width:20%;">Subtotal (₱)</th>
+                        <th style="width:15%;">Line Total</th>
                         <th style="width:5%;"></th>
                     </tr>
                 </thead>
                 <tbody id="itemsBody">
-                    <tr class="item-row">
-                        <td>
-                            <select name="itemIds" class="form-control item-select" onchange="updateSubtotal(this)">
-                                <option value="">Select Item...</option>
-                                @foreach (var item in items)
-                                {
-                                    <option value="@item.Id" data-price="@item.CostPerUnit">
-                                        @item.ItemName (@item.ItemCode)
-                                    </option>
-                                }
-                            </select>
-                        </td>
-                        <td>
-                            <input type="number" name="quantities" class="form-control qty-input" step="0.01" value="1" onchange="updateSubtotal(this)" />
-                        </td>
-                        <td>
-                            <input type="number" name="unitPrices" class="form-control price-input" step="0.01" value="0" onchange="updateSubtotal(this)" />
-                        </td>
-                        <td>
-                            <span class="subtotal">₱0.00</span>
-                        </td>
-                        <td>
-                            <button type="button" class="btn-add" style="padding:5px 10px;background:#dc3545;" onclick="removeRow(this)">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        </td>
-                    </tr>
-                </tbody>
+    <tr class="item-row">
+        <td>
+            <select name="itemIds" class="item-select" style="width:100%;padding:6px 10px;border:1px solid #ddd;border-radius:6px;">
+                <option value="0">-- Select Item --</option>
+                @foreach (var item in items)
+                {
+                    <option value="@item.Id"
+                            data-price="@item.SellingPricePerUnit"
+                            data-stock="@item.CurrentStock"
+                            data-uom="@item.UnitOfMeasure">
+                        @item.ItemCode — @item.ItemName (Stock: @item.CurrentStock @item.UnitOfMeasure)
+                    </option>
+                }
+            </select>
+        </td>
+        <td>
+            <input name="quantities" type="number" step="0.001" value="0" class="qty-input"
+                   style="width:100%;padding:6px 10px;border:1px solid #ddd;border-radius:6px;" />
+            <small class="uom-hint" style="color:var(--text-muted);font-size:11px;"></small>
+        </td>
+        <td>
+            <input name="unitPrices" type="number" step="0.01" value="0" class="price-input"
+                   style="width:100%;padding:6px 10px;border:1px solid #ddd;border-radius:6px;" />
+        </td>
+        <td class="line-total" style="font-weight:600;">₱0.00</td>
+        <td style="text-align:center;">
+            <button type="button" class="btn-add remove-row" style="background:#dc3545;padding:5px 10px;">
+                <i class="fas fa-times"></i>
+            </button>
+        </td>
+    </tr>
+</tbody>
             </table>
         </div>
 
-        <div style="text-align:right;margin-top:20px;padding-top:20px;border-top:2px solid #f0f4f0;">
-            <div style="font-size:18px;font-weight:700;">
-                Total: <span id="grandTotal" style="color:var(--primary-dark);">₱0.00</span>
+        <button type="button" id="addRowBtn" class="btn-back" style="margin-bottom:20px;">
+            <i class="fas fa-plus"></i> Add Another Item
+        </button>
+
+        <!-- Totals -->
+        <div style="display:flex;justify-content:flex-end;">
+            <div style="min-width:280px;padding:16px;background:#f8f9fa;border-radius:8px;">
+                <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+                    <span><strong>Subtotal:</strong></span>
+                    <span id="subtotalDisplay">₱0.00</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;padding-top:8px;border-top:1px solid #ddd;">
+                    <span><strong>Total:</strong></span>
+                    <span id="totalDisplay" style="font-weight:700;color:var(--primary);">₱0.00</span>
+                </div>
+                <input type="hidden" asp-for="SubtotalAmount" id="SubtotalAmount" />
+                <input type="hidden" asp-for="TotalAmount" id="TotalAmount" />
             </div>
         </div>
-    </div>
 
-    <!-- Buttons -->
-    <div style="display:flex;gap:12px;flex-wrap:wrap;">
-        <button type="submit" class="btn-submit">
-            <i class="fas fa-save"></i> Create PO
-        </button>
-        <a href="/PurchaseOrder" class="btn-cancel">
-            <i class="fas fa-times"></i> Cancel
-        </a>
-    </div>
-</form>
+        <div style="margin-top:24px;display:flex;gap:10px;">
+            <button type="submit" class="btn-add"><i class="fas fa-save"></i> Save Sales Order</button>
+            <a href="/SalesOrder" class="btn-back"><i class="fas fa-times"></i> Cancel</a>
+        </div>
+    </form>
+</div>
 
 @section Scripts {
+    <partial name="_ValidationScriptsPartial" />
     <script>
-        function addRow() {
-            const tbody = document.getElementById('itemsBody');
-            const firstRow = tbody.querySelector('.item-row');
-            const newRow = firstRow.cloneNode(true);
+        document.addEventListener('DOMContentLoaded', function () {
+            const itemsBody = document.getElementById('itemsBody');
+            const addBtn = document.getElementById('addRowBtn');
+            const subtotalInput = document.getElementById('SubtotalAmount');
+            const totalInput = document.getElementById('TotalAmount');
+            const subtotalDisplay = document.getElementById('subtotalDisplay');
+            const totalDisplay = document.getElementById('totalDisplay');
 
-            // Clear values
-            newRow.querySelector('.item-select').value = '';
-            newRow.querySelector('.qty-input').value = '1';
-            newRow.querySelector('.price-input').value = '0';
-            newRow.querySelector('.subtotal').textContent = '₱0.00';
-
-            tbody.appendChild(newRow);
-        }
-
-        function removeRow(btn) {
-            const tbody = document.getElementById('itemsBody');
-            if (tbody.querySelectorAll('.item-row').length > 1) {
-                btn.closest('.item-row').remove();
-                calculateGrandTotal();
-            } else {
-                alert('At least one item is required.');
-            }
-        }
-
-        function updateSubtotal(el) {
-            const row = el.closest('.item-row');
-            const itemSelect = row.querySelector('.item-select');
-            const qty = parseFloat(row.querySelector('.qty-input').value) || 0;
-            const priceInput = row.querySelector('.price-input');
-
-            // If item selected and price is 0, use item's cost per unit
-            if (el === itemSelect && itemSelect.value) {
-                const selectedOption = itemSelect.options[itemSelect.selectedIndex];
-                const itemPrice = selectedOption.getAttribute('data-price');
-                if (itemPrice && parseFloat(itemPrice) > 0) {
-                    priceInput.value = parseFloat(itemPrice).toFixed(2);
-                }
+            function recalc() {
+                let subtotal = 0;
+                itemsBody.querySelectorAll('.item-row').forEach(row => {
+                    const qty = parseFloat(row.querySelector('.qty-input').value) || 0;
+                    const price = parseFloat(row.querySelector('.price-input').value) || 0;
+                    const lineTotal = qty * price;
+                    row.querySelector('.line-total').textContent = '₱' + lineTotal.toFixed(2);
+                    subtotal += lineTotal;
+                });
+                subtotalInput.value = subtotal.toFixed(2);
+                totalInput.value = subtotal.toFixed(2);
+                subtotalDisplay.textContent = '₱' + subtotal.toFixed(2);
+                totalDisplay.textContent = '₱' + subtotal.toFixed(2);
             }
 
-            const price = parseFloat(priceInput.value) || 0;
-            const subtotal = qty * price;
-            row.querySelector('.subtotal').textContent = '₱' + subtotal.toFixed(2);
-
-            calculateGrandTotal();
+            function bindRow(row) {
+    row.querySelector('.item-select').addEventListener('change', function () {
+        const opt = this.options[this.selectedIndex];
+        const price = opt.getAttribute('data-price');
+        const uom = opt.getAttribute('data-uom');
+        if (price) row.querySelector('.price-input').value = price;
+        row.querySelector('.uom-hint').textContent = uom ? `(${uom})` : '';
+        recalc();
+    });
+    row.querySelector('.qty-input').addEventListener('input', recalc);
+    row.querySelector('.price-input').addEventListener('input', recalc);
+    row.querySelector('.remove-row').addEventListener('click', function () {
+        if (itemsBody.querySelectorAll('.item-row').length > 1) {
+            row.remove();
+            recalc();
         }
+    });
+}
 
-        function calculateGrandTotal() {
-            let total = 0;
-            document.querySelectorAll('.item-row').forEach(row => {
-                const qty = parseFloat(row.querySelector('.qty-input').value) || 0;
-                const price = parseFloat(row.querySelector('.price-input').value) || 0;
-                total += qty * price;
+            itemsBody.querySelectorAll('.item-row').forEach(bindRow);
+
+            addBtn.addEventListener('click', function () {
+                const first = itemsBody.querySelector('.item-row');
+                const clone = first.cloneNode(true);
+                clone.querySelector('.item-select').value = '0';
+                clone.querySelector('.qty-input').value = 0;
+                clone.querySelector('.price-input').value = 0;
+                clone.querySelector('.line-total').textContent = '₱0.00';
+                itemsBody.appendChild(clone);
+                bindRow(clone);
             });
-            document.getElementById('grandTotal').textContent = '₱' + total.toFixed(2);
-        }
+
+            recalc();
+        });
     </script>
 }

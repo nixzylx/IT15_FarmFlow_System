@@ -222,11 +222,12 @@
             letter-spacing: 0.5px;
         }
         .kpi-card .kpi-value {
-            font-size: 28px;
-            font-weight: 700;
-            color: var(--text-dark);
-            margin: 4px 0 2px;
-        }
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin: 4px 0 2px;
+    text-align: right;
+}
         .kpi-card .kpi-change { font-size: 12px; font-weight: 600; }
         .kpi-card .kpi-change.positive { color: var(--primary); }
         .kpi-card .kpi-change.negative { color: #dc3545; }
@@ -516,12 +517,12 @@
             display: inline-block;
             white-space: nowrap;
         }
-        .badge-status.active { background: #d4edda; color: #155724; }
-        .badge-status.inactive { background: #f8d7da; color: #721c24; }
-        .badge-status.info { background: #d1ecf1; color: #0c5460; }
-        .badge-status.warning { background: #fff3cd; color: #856404; }
-        .badge-status.primary { background: #cce5ff; color: #004085; }
-        .badge-status.secondary { background: #e2e3e5; color: #383d41; }
+        .badge-status.active {  color: #155724; }
+        .badge-status.inactive {  color: #721c24; }
+        .badge-status.info { color: #0c5460; }
+        .badge-status.warning {  color: #856404; }
+        .badge-status.primary { color: #004085; }
+        .badge-status.secondary {  color: #383d41; }
 
         /* ============================================================
            EMPTY STATE
@@ -689,56 +690,62 @@
 }
 
         @if (User.IsInRole("Administrator") || User.IsInRole("Sales_Rep"))
-        {
-            <div class="nav-section">
-                <div class="nav-section-title">Sales &amp; CRM</div>
-                <a href="#" class="nav-item" style="opacity:0.6;cursor:not-allowed;">
-                    <i class="fas fa-users"></i> Customers
-                    <span class="badge-soon">Soon</span>
-                </a>
-                <a href="#" class="nav-item" style="opacity:0.6;cursor:not-allowed;">
-                    <i class="fas fa-shopping-cart"></i> Sales Orders
-                    <span class="badge-soon">Soon</span>
-                </a>
-                <a href="#" class="nav-item" style="opacity:0.6;cursor:not-allowed;">
-                    <i class="fas fa-comments"></i> CRM
-                    <span class="badge-soon">Soon</span>
-                </a>
-            </div>
-        }
+{
+    <div class="nav-section">
+        <div class="nav-section-title">Sales &amp; CRM</div>
+        <a href="/Customer" class="nav-item @(currentController == "Customer" ? "active" : "")">
+            <i class="fas fa-users"></i> Customers
+        </a>
+        <a href="/Quotation" class="nav-item @(currentController == "Quotation" ? "active" : "")">
+            <i class="fas fa-file-alt"></i> Quotations
+        </a>
+        <a href="/SalesOrder" class="nav-item @(currentController == "SalesOrder" ? "active" : "")">
+            <i class="fas fa-shopping-cart"></i> Sales Orders
+        </a>
+        <a href="/Crm" class="nav-item @(currentController == "Crm" ? "active" : "")">
+            <i class="fas fa-comments"></i> CRM
+        </a>
+    </div>
+}
 
         @if (User.IsInRole("Administrator") || User.IsInRole("Accountant"))
-        {
-            <div class="nav-section">
-                <div class="nav-section-title">Finance</div>
-                <a href="#" class="nav-item" style="opacity:0.6;cursor:not-allowed;">
-                    <i class="fas fa-receipt"></i> Expenses
-                    <span class="badge-soon">Soon</span>
-                </a>
-                <a href="#" class="nav-item" style="opacity:0.6;cursor:not-allowed;">
-                    <i class="fas fa-credit-card"></i> Payments
-                    <span class="badge-soon">Soon</span>
-                </a>
-            </div>
-        }
+{
+    <div class="nav-section">
+        <div class="nav-section-title">Finance</div>
+        <a href="/Expense" class="nav-item @(currentController == "Expense" ? "active" : "")">
+            <i class="fas fa-receipt"></i> Expenses
+        </a>
+        <a href="/ExpenseCategory" class="nav-item @(currentController == "ExpenseCategory" ? "active" : "")">
+            <i class="fas fa-tags"></i> Expense Categories
+        </a>
+        <a href="/Payment" class="nav-item @(currentController == "Payment" ? "active" : "")">
+            <i class="fas fa-credit-card"></i> Payments
+        </a>
+    </div>
+}
 
-        @if (User.IsInRole("Administrator"))
-        {
-            <div class="nav-section">
-                <div class="nav-section-title">Administration</div>
-                <a href="/UserManagement" class="nav-item @(currentController == "UserManagement" ? "active" : "")">
-                    <i class="fas fa-user-cog"></i> User Management
-                </a>
-            </div>
-        }
+        @if (User.IsInRole("Administrator") || User.IsInRole("Accountant") ||
+     User.IsInRole("Sales_Rep") || User.IsInRole("Warehouse_Keeper") ||
+     User.IsInRole("Production_Manager"))
+{
+   @if (User.IsInRole("Administrator"))
+{
+    <div class="nav-section">
+        <div class="nav-section-title">Administration</div>
+        <a href="/UserManagement" class="nav-item @(currentController == "UserManagement" ? "active" : "")">
+            <i class="fas fa-user-cog"></i> User Management
+        </a>
+    </div>
 
-        <div class="nav-section">
-            <div class="nav-section-title">Analytics</div>
-            <a href="/Reports" class="nav-item @(currentController == "Reports" ? "active" : "")" style="opacity:0.6;cursor:not-allowed;">
-                <i class="fas fa-chart-bar"></i> Reports
-                <span class="badge-soon">Soon</span>
-            </a>
-        </div>
+    <div class="nav-section">
+        <div class="nav-section-title">Analytics</div>
+        <a href="/Reports" class="nav-item @(currentController == "Reports" ? "active" : "")">
+            <i class="fas fa-chart-bar"></i> Reports
+        </a>
+    </div>
+}
+}
+}
     </nav>
 
     <!-- MAIN CONTENT -->

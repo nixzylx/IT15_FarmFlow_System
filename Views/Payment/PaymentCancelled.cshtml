@@ -1,0 +1,30 @@
+@{
+    ViewData["Title"] = "Payment Cancelled";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="card-custom" style="padding:40px;max-width:640px;margin:40px auto;text-align:center;">
+    <div style="font-size:64px;color:#dc3545;margin-bottom:16px;">
+        <i class="fas fa-times-circle"></i>
+    </div>
+    <h2 style="margin-bottom:12px;">Payment Cancelled</h2>
+    <p style="color:var(--text-muted);margin-bottom:20px;">
+        Your payment was not completed. No charges were made.
+    </p>
+
+    @if (!string.IsNullOrEmpty(ViewBag.Reference as string))
+    {
+        <div style="background:#f8f9fa;padding:12px;border-radius:8px;margin-bottom:20px;font-size:13px;">
+            <strong>Reference:</strong> @ViewBag.Reference
+        </div>
+    }
+
+    <div style="display:flex;gap:10px;justify-content:center;">
+        <a href="/SalesOrder" class="btn-add">
+            <i class="fas fa-list"></i> Back to Orders
+        </a>
+        <a href="/Payment" class="btn-back">
+            <i class="fas fa-credit-card"></i> View Payments
+        </a>
+    </div>
+</div>

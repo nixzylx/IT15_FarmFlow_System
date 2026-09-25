@@ -1,0 +1,178 @@
+@model IEnumerable<FarmFlow.Web.Models.Quotation>
+@{
+    ViewData["Title"] = "Quotation Management";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var quotations = Model.ToList();
+}
+
+<!-- Header -->
+<div class="page-header">
+    <div class="left">
+        <h1><span class="icon">📄</span> Quotation Management</h1>
+    </div>
+    <a href="/Quotation/Create" class="btn-add">
+        <i class="fas fa-plus"></i> New Quotation
+    </a>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert-success-custom">
+        <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
+    </div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert-danger-custom" style="background:#f8d7da;color:#721c24;padding:12px 18px;border-radius:8px;margin-bottom:16px;">
+        <i class="fas fa-exclamation-circle"></i> @TempData["ErrorMessage"]
+    </div>
+}
+
+<!-- KPI Cards -->
+<div class="kpi-grid">
+    <div class="kpi-card">
+        <span class="kpi-icon"><i class="fas fa-file-alt"></i></span>
+        <div class="kpi-label">Total Quotations</div>
+        <div class="kpi-value">@ViewBag.TotalQuotations</div>
+        <div class="kpi-change positive"><i class="fas fa-arrow-up"></i> All Time</div>
+    </div>
+    <div class="kpi-card" style="border-left-color:var(--primary-light);">
+        <span class="kpi-icon" style="color:var(--primary-light);"><i class="fas fa-pen"></i></span>
+        <div class="kpi-label">Draft</div>
+        <div class="kpi-value">@ViewBag.DraftCount</div>
+        <div class="kpi-change positive">In Progress</div>
+    </div>
+    <div class="kpi-card" style="border-left-color:var(--secondary);">
+        <span class="kpi-icon" style="color:var(--secondary);"><i class="fas fa-paper-plane"></i></span>
+        <div class="kpi-label">Sent</div>
+        <div class="kpi-value">@ViewBag.SentCount</div>
+        <div class="kpi-change positive">Awaiting Response</div>
+    </div>
+    <div class="kpi-card" style="border-left-color:#28a745;">
+        <span class="kpi-icon" style="color:#28a745;"><i class="fas fa-check-double"></i></span>
+        <div class="kpi-label">Accepted Value</div>
+        <div class="kpi-value">₱@ViewBag.TotalValue.ToString("N0")</div>
+        <div class="kpi-change positive"><i class="fas fa-chart-line"></i> Won</div>
+    </div>
+</div>
+
+<!-- Filter Card -->
+<div class="card-custom mb-4">
+    <form method="get" asp-action="Index" style="display:flex;gap:12px;flex-wrap:wrap;align-items:end;">
+        <div style="flex:1;min-width:200px;">
+            <label style="font-size:13px;font-weight:600;display:block;margin-bottom:5px;">Search</label>
+            <div class="input-wrapper">
+                <i class="fas fa-search icon"></i>
+                <input type="text" name="searchTerm" value="@ViewBag.SearchTerm" placeholder="Search by quotation # or customer..." />
+            </div>
+        </div>
+        <div style="min-width:160px;">
+            <label style="font-size:13px;font-weight:600;display:block;margin-bottom:5px;">Status</label>
+            <select name="status" style="width:100%;padding:8px 12px;border:1px solid #ddd;border-radius:6px;">
+                <option value="">All Statuses</option>
+                <option value="Draft" selected="@(ViewBag.Status == "Draft")">Draft</option>
+                <option value="Sent" selected="@(ViewBag.Status == "Sent")">Sent</option>
+                <option value="Accepted" selected="@(ViewBag.Status == "Accepted")">Accepted</option>
+                <option value="Rejected" selected="@(ViewBag.Status == "Rejected")">Rejected</option>
+                <option value="Expired" selected="@(ViewBag.Status == "Expired")">Expired</option>
+                <option value="Converted" selected="@(ViewBag.Status == "Converted")">Converted</option>
+            </select>
+        </div>
+        <div style="display:flex;gap:8px;">
+            <button type="submit" class="btn-add"><i class="fas fa-search"></i> Filter</button>
+            <a href="/Quotation" class="btn-back"><i class="fas fa-redo"></i> Reset</a>
+        </div>
+    </form>
+</div>
+
+<!-- Table -->
+<div class="card-custom">
+    <div class="table-wrapper">
+        <table class="table-custom">
+            <thead>
+                <tr>
+                    <th>Quotation #</th>
+                    <th>Customer</th>
+                    <th>Date</th>
+                    <th>Valid Until</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                    <th>Sales Rep</th>
+                    <th style="text-align:center;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (quotations.Any())
+                {
+                    foreach (var q in quotations)
+                    {
+                        var displayName = !string.IsNullOrEmpty(q.Customer?.CompanyName)
+                            ? q.Customer!.CompanyName
+                            : $"{q.Customer?.FirstName} {q.Customer?.LastName}".Trim();
+
+                        <tr>
+                            <td><span class="badge-status info">@q.QuotationNumber</span></td>
+                            <td><strong>@(string.IsNullOrEmpty(displayName) ? "-" : displayName)</strong></td>
+                            <td>@q.QuotationDate.ToString("MMM dd, yyyy")</td>
+                            <td>@(q.ValidUntilDate?.ToString("MMM dd, yyyy") ?? "-")</td>
+                            <td><strong>₱@((q.TotalAmount ?? 0).ToString("N2"))</strong></td>
+                            <td>
+                                @{
+                                    var badgeClass = q.Status switch
+                                    {
+                                        "Draft" => "inactive",
+                                        "Sent" => "secondary",
+                                        "Accepted" => "active",
+                                        "Rejected" => "inactive",
+                                        "Converted" => "info",
+                                        _ => "secondary"
+                                    };
+                                }
+                                <span class="badge-status @badgeClass">@q.Status</span>
+                            </td>
+                            <td>@(q.SalesRep?.FirstName ?? "-")</td>
+                            <td style="text-align:center;white-space:nowrap;">
+                                <a href="/Quotation/Details/@q.Id" class="btn-add" style="padding:5px 12px;font-size:13px;background:#17a2b8;" title="View">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="/Quotation/Edit/@q.Id" class="btn-add" style="padding:5px 12px;font-size:13px;background:#ffc107;color:#212529;" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                @if (q.Status != "Converted" && q.Status != "Rejected" && q.Status != "Expired")
+                                {
+                                    <form asp-action="ConvertToSalesOrder" asp-route-id="@q.Id" method="post" style="display:inline;">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn-add"
+                                                style="padding:5px 12px;font-size:13px;background:#28a745;"
+                                                title="Convert to Sales Order"
+                                                onclick="return confirm('Convert this quotation to a Sales Order?');">
+                                            <i class="fas fa-exchange-alt"></i>
+                                        </button>
+                                    </form>
+                                }
+                                <a href="/Quotation/Delete/@q.Id" class="btn-add" style="padding:5px 12px;font-size:13px;background:#dc3545;" title="Delete">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="8">
+                            <div class="empty-state">
+                                <i class="fas fa-file-alt"></i>
+                                <h4>No Quotations Found</h4>
+                                <p>Click "New Quotation" to create your first quotation.</p>
+                                <a href="/Quotation/Create" class="btn-add" style="margin-top:12px;display:inline-flex;padding:8px 20px;font-size:13px;">
+                                    <i class="fas fa-plus"></i> New Quotation
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

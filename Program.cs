@@ -25,8 +25,12 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
 
 builder.Services.AddAuthorization();
 
+// Required for PayMongo HttpClient usage
+builder.Services.AddHttpClient();
+
 var app = builder.Build();
 Console.WriteLine(BCrypt.Net.BCrypt.HashPassword("Admin123!"));
+
 // Configure the HTTP request pipeline
 if (!app.Environment.IsDevelopment())
 {
@@ -78,30 +82,78 @@ app.MapControllerRoute(
     pattern: "Farm/{action=Index}/{id?}",
     defaults: new { controller = "Farm", action = "Index" });
 
-    // Crop route
+// Crop route
 app.MapControllerRoute(
     name: "crop",
     pattern: "Crop/{action=Index}/{id?}",
     defaults: new { controller = "Crop", action = "Index" });
 
-    // ProductionBatch route
+// ProductionBatch route
 app.MapControllerRoute(
     name: "productionbatch",
     pattern: "ProductionBatch/{action=Index}/{id?}",
     defaults: new { controller = "ProductionBatch", action = "Index" });
-    
-    // ✅ NEW: Inventory
-    app.MapControllerRoute(
-        name: "inventory",
-        pattern: "Inventory/{action=Index}/{id?}",
-        defaults: new { controller = "Inventory", action = "Index" });
 
-    // ✅ NEW: Category
-    app.MapControllerRoute(
-        name: "category",
-        pattern: "Category/{action=Index}/{id?}",
-        defaults: new { controller = "Category", action = "Index" });
+// Inventory
+app.MapControllerRoute(
+    name: "inventory",
+    pattern: "Inventory/{action=Index}/{id?}",
+    defaults: new { controller = "Inventory", action = "Index" });
 
+// Category
+app.MapControllerRoute(
+    name: "category",
+    pattern: "Category/{action=Index}/{id?}",
+    defaults: new { controller = "Category", action = "Index" });
 
-       
+// ==============================================
+// ✅ NEW: Sales & CRM routes
+// ==============================================
+
+// Customer
+app.MapControllerRoute(
+    name: "customer",
+    pattern: "Customer/{action=Index}/{id?}",
+    defaults: new { controller = "Customer", action = "Index" });
+
+// Quotation
+app.MapControllerRoute(
+    name: "quotation",
+    pattern: "Quotation/{action=Index}/{id?}",
+    defaults: new { controller = "Quotation", action = "Index" });
+
+// SalesOrder
+app.MapControllerRoute(
+    name: "salesorder",
+    pattern: "SalesOrder/{action=Index}/{id?}",
+    defaults: new { controller = "SalesOrder", action = "Index" });
+
+// CRM
+app.MapControllerRoute(
+    name: "crm",
+    pattern: "Crm/{action=Index}/{id?}",
+    defaults: new { controller = "Crm", action = "Index" });
+
+//Finance
+app.MapControllerRoute(
+    name: "expense",         
+    pattern: "Expense/{action=Index}/{id?}",         
+    defaults: new { controller = "Expense", action = "Index" });
+
+app.MapControllerRoute(
+    name: "expensecategory", 
+    pattern: "ExpenseCategory/{action=Index}/{id?}", 
+    defaults: new { controller = "ExpenseCategory", action = "Index" });
+
+app.MapControllerRoute(
+    name: "payment",         
+    pattern: "Payment/{action=Index}/{id?}",         
+    defaults: new { controller = "Payment", action = "Index" });
+
+// Reports
+app.MapControllerRoute(
+    name: "reports",
+    pattern: "Reports/{action=Index}/{id?}",
+    defaults: new { controller = "Reports", action = "Index" });
+
 app.Run();

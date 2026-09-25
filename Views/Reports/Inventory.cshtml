@@ -1,0 +1,140 @@
+@{
+    ViewData["Title"] = "Inventory Report";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var items = ViewBag.Items as List<FarmFlow.Web.Models.InventoryItem> ?? new();
+    var categories = ViewBag.Categories as List<FarmFlow.Web.Models.Category> ?? new();
+}
+
+<div class="page-header">
+    <div class="left">
+        <h1><span class="icon">📦</span> Inventory Report</h1>
+    </div>
+    <a href="/Reports" class="btn-back"><i class="fas fa-arrow-left"></i> Back to Reports</a>
+</div>
+
+<div class="card-custom mb-4">
+    <form method="get" asp-action="Inventory" style="display:flex;gap:12px;flex-wrap:wrap;align-items:end;">
+        <div style="min-width:220px;">
+            <label style="font-size:13px;font-weight:600;display:block;margin-bottom:5px;">Category</label>
+            <select name="categoryId" style="width:100%;padding:8px 12px;border:1px solid #ddd;border-radius:6px;">
+                <option value="">All Categories</option>
+                @foreach (var c in categories)
+                {
+                    <option value="@c.Id" selected="@(ViewBag.CategoryId == c.Id)">@c.Name</option>
+                }
+            </select>
+        </div>
+        <div style="display:flex;gap:8px;">
+            <button type="submit" class="btn-add"><i class="fas fa-filter"></i> Apply</button>
+            <a href="/Reports/Inventory" class="btn-back"><i class="fas fa-redo"></i> Reset</a>
+        </div>
+    </form>
+</div>
+
+<div class="kpi-grid">
+    <div class="kpi-card">
+        <span class="kpi-icon"><i class="fas fa-boxes"></i></span>
+        <div class="kpi-label">Total Items</div>
+        <div class="kpi-value">@ViewBag.TotalItems</div>
+    </div>
+    <div class="kpi-card" style="border-left-color:var(--secondary);">
+        <span class="kpi-icon" style="color:var(--secondary);"><i class="fas fa-coins"></i></span>
+        <div class="kpi-label">Total Value</div>
+        <div class="kpi-value">₱@ViewBag.TotalValue.ToString("N0")</div>
+    </div>
+    <div class="kpi-card" style="border-left-color:#f4a261;">
+        <span class="kpi-icon" style="color:#f4a261;"><i class="fas fa-exclamation-triangle"></i></span>
+        <div class="kpi-label">Low Stock</div>
+        <div class="kpi-value">@ViewBag.LowStockCount</div>
+    </div>
+    <div class="kpi-card" style="border-left-color:#dc3545;">
+        <span class="kpi-icon" style="color:#dc3545;"><i class="fas fa-times-circle"></i></span>
+        <div class="kpi-label">Out of Stock</div>
+        <div class="kpi-value">@ViewBag.OutOfStockCount</div>
+    </div>
+</div>
+
+<div class="card-custom" style="padding:20px;margin-top:16px;">
+    <h3 style="font-size:15px;margin-bottom:16px;">Stock Value by Category</h3>
+    <div class="chart-container" style="height:280px;">
+        <canvas id="categoryChart"></canvas>
+    </div>
+</div>
+
+<div class="card-custom" style="margin-top:16px;">
+    <div class="table-wrapper">
+        <table class="table-custom">
+            <thead>
+                <tr>
+                    <th>Item Code</th>
+                    <th>Item Name</th>
+                    <th>Category</th>
+                    <th>Stock</th>
+                    <th>UOM</th>
+                    <th>Cost/Unit</th>
+                    <th>Stock Value</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in items)
+                {
+                    var isLow = item.ReorderLevel.HasValue && item.CurrentStock <= item.ReorderLevel.Value;
+                    var isOut = item.CurrentStock <= 0;
+                    var value = item.CurrentStock * (item.CostPerUnit ?? 0);
+
+                    <tr>
+                        <td><span class="badge-status info">@item.ItemCode</span></td>
+                        <td><strong>@item.ItemName</strong></td>
+                        <td>@(item.Category?.Name ?? "-")</td>
+                        <td>@item.CurrentStock</td>
+                        <td>@item.UnitOfMeasure</td>
+                        <td>₱@((item.CostPerUnit ?? 0).ToString("N2"))</td>
+                        <td><strong>₱@value.ToString("N2")</strong></td>
+                        <td>
+                            @if (isOut)
+                            {
+                                <span class="badge-status inactive">Out of Stock</span>
+                            }
+                            else if (isLow)
+                            {
+                                <span class="badge-status warning">Low Stock</span>
+                            }
+                            else
+                            {
+                                <span class="badge-status active">OK</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            new Chart(document.getElementById('categoryChart'), {
+                type: 'bar',
+                data: {
+                    labels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.CategoryLabels)),
+                    datasets: [{
+                        label: 'Value (₱)',
+                        data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.CategoryValues)),
+                        backgroundColor: '#12a5da',
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, ticks: { callback: v => '₱' + v.toLocaleString() } }
+                    }
+                }
+            });
+        });
+    </script>
+}

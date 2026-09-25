@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace FarmFlow.Web.Models;
 
@@ -10,13 +11,19 @@ public class SalesOrderItem
     public int SalesOrderId { get; set; }
     public int InventoryItemId { get; set; }
 
+    [Column(TypeName = "decimal(18,3)")]
     public decimal QuantityOrdered { get; set; }
-    public decimal UnitPrice { get; set; }
-    public decimal? QuantityPicked { get; set; }
-    public decimal? QuantityDelivered { get; set; }
-    public decimal? TotalLineAmount { get; set; }
 
-    [MaxLength(255)]
+    [Column(TypeName = "decimal(18,3)")]
+    public decimal QuantityDelivered { get; set; }
+
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal UnitPrice { get; set; }
+
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal TotalLineAmount { get; set; }
+
+    [MaxLength(300)]
     public string? Notes { get; set; }
 
     public DateTime CreatedDateTime { get; set; } = DateTime.Now;

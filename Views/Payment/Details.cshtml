@@ -1,0 +1,121 @@
+@model FarmFlow.Web.Models.Payment
+@{
+    ViewData["Title"] = $"Payment {Model.PaymentNumber}";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    bool isCustomer = Model.PaymentType == "Customer";
+}
+
+<div class="page-header">
+    <div class="left">
+        <h1><span class="icon">💳</span> @Model.PaymentNumber</h1>
+    </div>
+    <div style="display:flex;gap:8px;">
+        <a href="/Payment/Delete/@Model.Id" class="btn-add" style="background:#dc3545;">
+            <i class="fas fa-trash"></i> Delete
+        </a>
+        <a href="/Payment" class="btn-back"><i class="fas fa-arrow-left"></i> Back</a>
+    </div>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert-success-custom">
+        <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
+    </div>
+}
+
+<!-- KPI Cards -->
+<div class="kpi-grid">
+    <div class="kpi-card" style="border-left-color:@(isCustomer ? "#28a745" : "#dc3545");">
+        <span class="kpi-icon" style="color:@(isCustomer ? "#28a745" : "#dc3545");">
+            <i class="fas fa-@(isCustomer ? "arrow-down" : "arrow-up")"></i>
+        </span>
+        <div class="kpi-label">Amount @(isCustomer ? "Received" : "Paid")</div>
+        <div class="kpi-value">₱@Model.Amount.ToString("N0")</div>
+    </div>
+    <div class="kpi-card" style="border-left-color:var(--primary-light);">
+        <span class="kpi-icon" style="color:var(--primary-light);"><i class="fas fa-credit-card"></i></span>
+        <div class="kpi-label">Method</div>
+        <div class="kpi-value" style="font-size:20px;">@Model.PaymentMethod</div>
+    </div>
+    <div class="kpi-card" style="border-left-color:var(--secondary);">
+        <span class="kpi-icon" style="color:var(--secondary);"><i class="fas fa-calendar-alt"></i></span>
+        <div class="kpi-label">Payment Date</div>
+        <div class="kpi-value" style="font-size:20px;">@Model.PaymentDate.ToString("MMM dd, yyyy")</div>
+    </div>
+    <div class="kpi-card">
+        <span class="kpi-icon"><i class="fas fa-tag"></i></span>
+        <div class="kpi-label">Type</div>
+        <div class="kpi-value" style="font-size:20px;">
+            @if (isCustomer)
+            {
+                <span class="badge-status active">Customer</span>
+            }
+            else
+            {
+                <span class="badge-status warning">Supplier</span>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Payment Info -->
+<div class="card-custom" style="padding:24px;margin-bottom:16px;">
+    <h3 style="margin-bottom:16px;font-size:16px;">Payment Details</h3>
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px;">
+        <div><strong>Payment #:</strong> @Model.PaymentNumber</div>
+        <div><strong>Date:</strong> @Model.PaymentDate.ToString("MMM dd, yyyy")</div>
+        <div><strong>Type:</strong> @Model.PaymentType</div>
+        <div><strong>Method:</strong> @Model.PaymentMethod</div>
+        <div><strong>Amount:</strong> <span style="font-weight:700;color:var(--primary);">₱@Model.Amount.ToString("N2")</span></div>
+        <div><strong>Reference #:</strong> @(string.IsNullOrEmpty(Model.ReferenceNumber) ? "-" : Model.ReferenceNumber)</div>
+        <div style="grid-column:1/-1;">
+            <strong>Notes:</strong> @(string.IsNullOrEmpty(Model.Notes) ? "-" : Model.Notes)
+        </div>
+    </div>
+</div>
+
+<!-- Linked Document -->
+@if (isCustomer && Model.SalesOrder != null)
+{
+    <div class="card-custom" style="padding:24px;margin-bottom:16px;background:#f8f9fa;">
+        <h3 style="margin-bottom:16px;font-size:16px;">Linked Sales Order</h3>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
+            <div><strong>SO #:</strong> @Model.SalesOrder.SONumber</div>
+            <div><strong>Customer:</strong> @(Model.SalesOrder.Customer?.CompanyName ?? "-")</div>
+            <div><strong>Order Total:</strong> ₱@((Model.SalesOrder.TotalAmount ?? 0).ToString("N2"))</div>
+            <div><strong>Order Status:</strong> @Model.SalesOrder.Status</div>
+            <div><strong>Payment Status:</strong> @Model.SalesOrder.PaymentStatus</div>
+        </div>
+        <div style="margin-top:16px;">
+            <a href="/SalesOrder/Details/@Model.SalesOrder.Id" class="btn-add" style="background:#17a2b8;">
+                <i class="fas fa-external-link-alt"></i> View Sales Order
+            </a>
+        </div>
+    </div>
+}
+else if (!isCustomer && Model.PurchaseOrder != null)
+{
+    <div class="card-custom" style="padding:24px;margin-bottom:16px;background:#f8f9fa;">
+        <h3 style="margin-bottom:16px;font-size:16px;">Linked Purchase Order</h3>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
+            <div><strong>PO #:</strong> @Model.PurchaseOrder.PONumber</div>
+            <div><strong>Supplier:</strong> @(Model.PurchaseOrder.Supplier?.CompanyName ?? "-")</div>
+            <div><strong>Order Total:</strong> ₱@((Model.PurchaseOrder.TotalAmount ?? 0).ToString("N2"))</div>
+        </div>
+        <div style="margin-top:16px;">
+            <a href="/PurchaseOrder/Details/@Model.PurchaseOrder.Id" class="btn-add" style="background:#17a2b8;">
+                <i class="fas fa-external-link-alt"></i> View Purchase Order
+            </a>
+        </div>
+    </div>
+}
+
+<!-- Audit -->
+<div class="card-custom" style="padding:24px;">
+    <h3 style="margin-bottom:16px;font-size:16px;">Audit Information</h3>
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px;">
+        <div><strong>Recorded By:</strong> @(Model.CreatedByUser != null ? $"{Model.CreatedByUser.FirstName} {Model.CreatedByUser.LastName}" : "-")</div>
+        <div><strong>Recorded On:</strong> @Model.CreatedDateTime.ToString("MMM dd, yyyy hh:mm tt")</div>
+    </div>
+</div>

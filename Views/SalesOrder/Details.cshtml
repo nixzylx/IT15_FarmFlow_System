@@ -1,65 +1,62 @@
-@model FarmFlow.Web.Models.PurchaseOrder
+@model FarmFlow.Web.Models.SalesOrder
 @{
-    ViewData["Title"] = "Purchase Order Details";
+    ViewData["Title"] = $"Sales Order {Model.SONumber}";
     Layout = "~/Views/Shared/_Layout.cshtml";
-    var items = Model.PurchaseOrderItems?.ToList() ?? new List<FarmFlow.Web.Models.PurchaseOrderItem>();
-
     var statusClass = Model.Status switch
     {
-        "Draft" => "badge-status secondary",
-        "Pending Approval" => "badge-status warning",
-        "Sent" => "badge-status info",
-        "Shipped" => "badge-status primary",
-        "Received" => "badge-status active",
-        "Cancelled" => "badge-status inactive",
-        _ => "badge-status secondary"
+        "Confirmed" => "info",
+        "Picking" => "secondary",
+        "Dispatched" => "secondary",
+        "Delivered" => "active",
+        "Cancelled" => "inactive",
+        _ => "secondary"
+    };
+    var payClass = Model.PaymentStatus switch
+    {
+        "Paid" => "active",
+        "Partial" => "secondary",
+        _ => "inactive"
     };
 }
 
 <div class="page-header">
     <div class="left">
-        <a href="/PurchaseOrder" class="btn-back">
-            <i class="fas fa-arrow-left"></i> Back
-        </a>
-        <h1><span class="icon">📄</span> @Model.PONumber</h1>
-        <span class="@statusClass" style="font-size:14px;padding:6px 16px;">@Model.Status</span>
+        <h1><span class="icon">🛒</span> @Model.SONumber</h1>
     </div>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;">
-        @if ((Model.Status == "Draft" || Model.Status == "Pending Approval") && User.IsInRole("Administrator"))
+    <div style="display:flex;gap:8px;">
+        <a href="/SalesOrder" class="btn-back"><i class="fas fa-arrow-left"></i> Back</a>
+
+        @if (Model.Status == "Confirmed" || Model.Status == "Picking")
         {
-            <form method="post" asp-action="Approve" asp-route-id="@Model.Id" style="display:inline;">
+            <form asp-action="Dispatch" asp-route-id="@Model.Id" method="post" style="display:inline;">
                 @Html.AntiForgeryToken()
-                <button type="submit" class="btn-add" style="background:#79c25c;">
-                    <i class="fas fa-check"></i> Approve & Send
+                <button type="submit" class="btn-add" style="background:#ffc107;color:#212529;"
+                        onclick="return confirm('Mark this order as Dispatched?');">
+                    <i class="fas fa-truck"></i> Dispatch
                 </button>
             </form>
         }
 
-        @if (Model.Status == "Sent" || Model.Status == "Shipped")
+        @if (Model.Status == "Dispatched")
         {
-            <form method="post" asp-action="Receive" asp-route-id="@Model.Id" style="display:inline;">
+            <form asp-action="Deliver" asp-route-id="@Model.Id" method="post" style="display:inline;">
                 @Html.AntiForgeryToken()
-                <button type="submit" class="btn-add" style="background:#17a2b8;" onclick="return confirm('Receive all items and update stock?');">
-                    <i class="fas fa-box-open"></i> Receive Stock
+                <button type="submit" class="btn-add" style="background:#28a745;"
+                        onclick="return confirm('Deliver this order? Stock will be deducted.');">
+                    <i class="fas fa-check"></i> Deliver
                 </button>
             </form>
         }
 
-        @if (Model.Status != "Received" && Model.Status != "Cancelled")
+        @if (Model.Status != "Delivered" && Model.Status != "Cancelled")
         {
-            <form method="post" asp-action="Cancel" asp-route-id="@Model.Id" style="display:inline;">
+            <form asp-action="Cancel" asp-route-id="@Model.Id" method="post" style="display:inline;">
                 @Html.AntiForgeryToken()
-                <button type="submit" class="btn-back" onclick="return confirm('Cancel this PO?');">
+                <button type="submit" class="btn-add" style="background:#dc3545;"
+                        onclick="return confirm('Cancel this order?');">
                     <i class="fas fa-ban"></i> Cancel
                 </button>
             </form>
-        }
-
-        @if (Model.Status == "Draft" || Model.Status == "Pending Approval")
-        {
-            <a href="/PurchaseOrder/Edit/@Model.Id" class="btn-add" style="background:#ffc107;color:#212529;">
-                <i class="fas fa-edit"></i> Edit
-            </a>
         }
     </div>
 </div>
@@ -70,168 +67,110 @@
         <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
     </div>
 }
-@if (TempData["ErrorMessage"] != null)
-{
-    <div class="alert-danger-custom">
-        <i class="fas fa-exclamation-circle"></i> @TempData["ErrorMessage"]
-    </div>
-}
 
-<!-- KPI Cards -->
 <div class="kpi-grid">
     <div class="kpi-card">
-        <span class="kpi-icon"><i class="fas fa-truck"></i></span>
-        <div class="kpi-label">Supplier</div>
-        <div class="kpi-value" style="font-size:16px;">@Model.Supplier?.CompanyName</div>
-        <div class="kpi-change positive">@Model.Supplier?.SupplierCode</div>
-    </div>
-    <div class="kpi-card" style="border-left-color:var(--secondary);">
-        <span class="kpi-icon" style="color:var(--secondary);"><i class="fas fa-boxes"></i></span>
-        <div class="kpi-label">Total Items</div>
-        <div class="kpi-value">@items.Count</div>
-        <div class="kpi-change positive">Line Items</div>
-    </div>
-    <div class="kpi-card" style="border-left-color:#f4a261;">
-        <span class="kpi-icon" style="color:#f4a261;"><i class="fas fa-money-bill-wave"></i></span>
-        <div class="kpi-label">Total Amount</div>
-        <div class="kpi-value">₱@(Model.TotalAmount?.ToString("N2") ?? "0.00")</div>
-        <div class="kpi-change positive">Order Value</div>
+        <span class="kpi-icon"><i class="fas fa-calendar-alt"></i></span>
+        <div class="kpi-label">Order Date</div>
+        <div class="kpi-value" style="font-size:20px;">@Model.OrderDate.ToString("MMM dd, yyyy")</div>
     </div>
     <div class="kpi-card" style="border-left-color:var(--primary-light);">
-        <span class="kpi-icon" style="color:var(--primary-light);"><i class="fas fa-calendar"></i></span>
-        <div class="kpi-label">Order Date</div>
-        <div class="kpi-value" style="font-size:16px;">@Model.OrderDate.ToString("MMM dd, yyyy")</div>
-        <div class="kpi-change positive">Created</div>
+        <span class="kpi-icon" style="color:var(--primary-light);"><i class="fas fa-truck"></i></span>
+        <div class="kpi-label">Required Delivery</div>
+        <div class="kpi-value" style="font-size:20px;">@(Model.RequiredDeliveryDate?.ToString("MMM dd, yyyy") ?? "-")</div>
+    </div>
+    <div class="kpi-card" style="border-left-color:#28a745;">
+        <span class="kpi-icon" style="color:#28a745;"><i class="fas fa-money-bill-wave"></i></span>
+        <div class="kpi-label">Total</div>
+        <div class="kpi-value">₱@((Model.TotalAmount ?? 0).ToString("N0"))</div>
+    </div>
+    <div class="kpi-card" style="border-left-color:#f4a261;">
+        <span class="kpi-icon" style="color:#f4a261;"><i class="fas fa-file-invoice-dollar"></i></span>
+        <div class="kpi-label">Payment</div>
+        <div class="kpi-value" style="font-size:20px;"><span class="badge-status @payClass">@Model.PaymentStatus</span></div>
     </div>
 </div>
 
-<div class="row g-4 mb-4">
-    <div class="col-lg-6">
-        <div class="card-custom">
-            <div class="card-header-custom">
-                <h5><i class="fas fa-info-circle" style="color:var(--primary);margin-right:8px;"></i> Order Information</h5>
-            </div>
-            <div style="padding:10px 0;">
-                <div style="display:flex;padding:8px 0;border-bottom:1px solid #f0f4f0;">
-                    <span style="font-weight:600;width:150px;color:var(--text-muted);">PO Number:</span>
-                    <span><strong>@Model.PONumber</strong></span>
-                </div>
-                <div style="display:flex;padding:8px 0;border-bottom:1px solid #f0f4f0;">
-                    <span style="font-weight:600;width:150px;color:var(--text-muted);">Supplier:</span>
-                    <span>@Model.Supplier?.CompanyName</span>
-                </div>
-                <div style="display:flex;padding:8px 0;border-bottom:1px solid #f0f4f0;">
-                    <span style="font-weight:600;width:150px;color:var(--text-muted);">Order Date:</span>
-                    <span>@Model.OrderDate.ToString("MMMM dd, yyyy")</span>
-                </div>
-                <div style="display:flex;padding:8px 0;border-bottom:1px solid #f0f4f0;">
-                    <span style="font-weight:600;width:150px;color:var(--text-muted);">Expected Delivery:</span>
-                    <span>@(Model.DeliveryExpectedDate?.ToString("MMMM dd, yyyy") ?? "-")</span>
-                </div>
-                <div style="display:flex;padding:8px 0;border-bottom:1px solid #f0f4f0;">
-                    <span style="font-weight:600;width:150px;color:var(--text-muted);">Actual Delivery:</span>
-                    <span>@(Model.ActualDeliveryDate?.ToString("MMMM dd, yyyy") ?? "-")</span>
-                </div>
-                <div style="display:flex;padding:8px 0;">
-                    <span style="font-weight:600;width:150px;color:var(--text-muted);">Payment Terms:</span>
-                    <span>@(Model.PaymentTerms ?? "-")</span>
-                </div>
-            </div>
+<div class="card-custom" style="padding:24px;margin-bottom:16px;">
+    <h3 style="margin-bottom:16px;font-size:16px;">Order Information</h3>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
+        <div><strong>SO #:</strong> @Model.SONumber</div>
+        <div><strong>Customer:</strong> @(Model.Customer?.CompanyName ?? "-")</div>
+        <div><strong>Sales Rep:</strong> @(Model.SalesRep?.FirstName ?? "-")</div>
+        <div><strong>Order Date:</strong> @Model.OrderDate.ToString("MMM dd, yyyy")</div>
+        <div><strong>Required Delivery:</strong> @(Model.RequiredDeliveryDate?.ToString("MMM dd, yyyy") ?? "-")</div>
+        <div><strong>Actual Delivery:</strong> @(Model.ActualDeliveryDate?.ToString("MMM dd, yyyy") ?? "-")</div>
+        <div>
+            <strong>Status:</strong>
+            <span class="badge-status @statusClass">@Model.Status</span>
         </div>
-    </div>
-
-    <div class="col-lg-6">
-        <div class="card-custom">
-            <div class="card-header-custom">
-                <h5><i class="fas fa-users" style="color:var(--secondary);margin-right:8px;"></i> Approvals</h5>
-            </div>
-            <div style="padding:10px 0;">
-                <div style="display:flex;padding:8px 0;border-bottom:1px solid #f0f4f0;">
-                    <span style="font-weight:600;width:150px;color:var(--text-muted);">Requested By:</span>
-                    <span>@(Model.RequestedByUser?.Username ?? "-")</span>
-                </div>
-                <div style="display:flex;padding:8px 0;border-bottom:1px solid #f0f4f0;">
-                    <span style="font-weight:600;width:150px;color:var(--text-muted);">Approved By:</span>
-                    <span>@(Model.ApprovedByUser?.Username ?? "Pending")</span>
-                </div>
-                <div style="display:flex;padding:8px 0;border-bottom:1px solid #f0f4f0;">
-                    <span style="font-weight:600;width:150px;color:var(--text-muted);">Subtotal:</span>
-                    <span>₱@(Model.SubtotalAmount?.ToString("N2") ?? "0.00")</span>
-                </div>
-                <div style="display:flex;padding:8px 0;border-bottom:1px solid #f0f4f0;">
-                    <span style="font-weight:600;width:150px;color:var(--text-muted);">Tax:</span>
-                    <span>₱@(Model.TaxAmount?.ToString("N2") ?? "0.00")</span>
-                </div>
-                <div style="display:flex;padding:8px 0;">
-                    <span style="font-weight:600;width:150px;color:var(--text-muted);">Notes:</span>
-                    <span>@(Model.Notes ?? "-")</span>
-                </div>
-            </div>
+        <div>
+            <strong>Payment:</strong>
+            <span class="badge-status @payClass">@Model.PaymentStatus</span>
         </div>
+        <div><strong>Created:</strong> @Model.CreatedDateTime.ToString("MMM dd, yyyy")</div>
     </div>
 </div>
 
-<!-- Items Table -->
-<div class="card-custom">
-    <div class="card-header-custom">
-        <h5><i class="fas fa-boxes" style="color:var(--primary);margin-right:8px;"></i> Order Items</h5>
+<div class="card-custom" style="padding:24px;margin-bottom:16px;">
+    <h3 style="margin-bottom:16px;font-size:16px;">Amount Breakdown</h3>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;">
+        <div><strong>Subtotal:</strong> ₱@((Model.SubtotalAmount ?? 0).ToString("N2"))</div>
+        <div><strong>Discount:</strong> -₱@((Model.DiscountAmount ?? 0).ToString("N2"))</div>
+        <div><strong>Tax:</strong> ₱@((Model.TaxAmount ?? 0).ToString("N2"))</div>
+        <div><strong>Total:</strong> <span style="font-weight:700;color:var(--primary);">₱@((Model.TotalAmount ?? 0).ToString("N2"))</span></div>
+    </div>
+</div>
+
+<div class="card-custom" style="margin-bottom:16px;">
+    <div style="padding:16px 20px;border-bottom:1px solid #eee;">
+        <h3 style="font-size:16px;margin:0;">Order Items</h3>
     </div>
     <div class="table-wrapper">
         <table class="table-custom">
             <thead>
                 <tr>
-                    <th>Item Code</th>
-                    <th>Item Name</th>
-                    <th>Quantity</th>
-                    <th>Unit Price</th>
-                    <th>Subtotal</th>
-                    <th>Received</th>
-                </tr>
+    <th>Item</th>
+    <th>Qty Ordered</th>
+    <th>Qty Delivered</th>
+    <th>Unit Price</th>
+    <th>Line Total</th>
+</tr>
             </thead>
             <tbody>
-                @if (items.Any())
+                @if (Model.SalesOrderItems != null && Model.SalesOrderItems.Any())
                 {
-                    foreach (var item in items)
+                    foreach (var item in Model.SalesOrderItems)
                     {
                         <tr>
-                            <td><span class="badge-status info">@item.InventoryItem?.ItemCode</span></td>
-                            <td><strong>@item.InventoryItem?.ItemName</strong></td>
-                            <td>@item.QuantityOrdered @item.InventoryItem?.UnitOfMeasure</td>
-                            <td>₱@item.UnitPrice.ToString("N2")</td>
-                            <td><strong>₱@(item.TotalLineAmount?.ToString("N2") ?? "0.00")</strong></td>
-                            <td>
-                                @if (item.QuantityReceived.HasValue && item.QuantityReceived > 0)
-                                {
-                                    <span class="badge-status active">@item.QuantityReceived</span>
-                                }
-                                else
-                                {
-                                    <span class="badge-status secondary">Pending</span>
-                                }
-                            </td>
-                        </tr>
+    <td>@(item.InventoryItem?.ItemName ?? $"Item #{item.InventoryItemId}")</td>
+    <td>@item.QuantityOrdered @(item.InventoryItem?.UnitOfMeasure ?? "")</td>
+    <td>@item.QuantityDelivered @(item.InventoryItem?.UnitOfMeasure ?? "")</td>
+    <td>₱@item.UnitPrice.ToString("N2")</td>
+    <td><strong>₱@item.TotalLineAmount.ToString("N2")</strong></td>
+</tr>
                     }
                 }
                 else
                 {
-                    <tr>
-                        <td colspan="6" style="text-align:center;padding:30px;color:var(--text-muted);">
-                            No items on this PO.
-                        </td>
-                    </tr>
+                    <tr><td colspan="5" style="text-align:center;color:var(--text-muted);">No items.</td></tr>
                 }
             </tbody>
-            @if (items.Any())
-            {
-                <tfoot>
-                    <tr style="background:#f8faf8;">
-                        <td colspan="4" style="text-align:right;font-weight:700;padding:15px;">TOTAL:</td>
-                        <td colspan="2" style="font-weight:700;font-size:18px;color:var(--primary-dark);padding:15px;">
-                            ₱@(Model.TotalAmount?.ToString("N2") ?? "0.00")
-                        </td>
-                    </tr>
-                </tfoot>
-            }
         </table>
     </div>
 </div>
+
+@if (!string.IsNullOrEmpty(Model.DeliveryInstructions) || !string.IsNullOrEmpty(Model.Notes))
+{
+    <div class="card-custom" style="padding:24px;">
+        <h3 style="margin-bottom:16px;font-size:16px;">Delivery & Notes</h3>
+        @if (!string.IsNullOrEmpty(Model.DeliveryInstructions))
+        {
+            <div style="margin-bottom:12px;"><strong>Delivery Instructions:</strong> @Model.DeliveryInstructions</div>
+        }
+        @if (!string.IsNullOrEmpty(Model.Notes))
+        {
+            <div><strong>Notes:</strong> @Model.Notes</div>
+        }
+    </div>
+}

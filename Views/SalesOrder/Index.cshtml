@@ -1,16 +1,20 @@
-@model IEnumerable<FarmFlow.Web.Models.PurchaseOrder>
+@model IEnumerable<FarmFlow.Web.Models.SalesOrder>
 @{
-    ViewData["Title"] = "Purchase Orders";
+    ViewData["Title"] = "Sales Orders";
     Layout = "~/Views/Shared/_Layout.cshtml";
     var orders = Model.ToList();
+    decimal totalValue = orders.Sum(o => o.TotalAmount ?? 0);
+    decimal paidValue = orders.Where(o => o.PaymentStatus == "Paid").Sum(o => o.TotalAmount ?? 0);
+    decimal outstanding = totalValue - paidValue;
 }
 
+<!-- Header -->
 <div class="page-header">
     <div class="left">
-        <h1><span class="icon">📄</span> Purchase Orders</h1>
+        <h1><span class="icon">🛒</span> Sales Orders</h1>
     </div>
-    <a href="/PurchaseOrder/Create" class="btn-add">
-        <i class="fas fa-plus"></i> Create PO
+    <a href="/SalesOrder/Create" class="btn-add">
+        <i class="fas fa-plus"></i> New Sales Order
     </a>
 </div>
 
@@ -22,7 +26,7 @@
 }
 @if (TempData["ErrorMessage"] != null)
 {
-    <div class="alert-danger-custom">
+    <div class="alert-danger-custom" style="background:#f8d7da;color:#721c24;padding:12px 18px;border-radius:8px;margin-bottom:16px;">
         <i class="fas fa-exclamation-circle"></i> @TempData["ErrorMessage"]
     </div>
 }
@@ -30,28 +34,44 @@
 <!-- KPI Cards -->
 <div class="kpi-grid">
     <div class="kpi-card">
-        <span class="kpi-icon"><i class="fas fa-file-invoice"></i></span>
-        <div class="kpi-label">Total POs</div>
+        <span class="kpi-icon"><i class="fas fa-shopping-cart"></i></span>
+        <div class="kpi-label">Total Orders</div>
         <div class="kpi-value">@ViewBag.TotalOrders</div>
         <div class="kpi-change positive"><i class="fas fa-arrow-up"></i> All Time</div>
     </div>
-    <div class="kpi-card" style="border-left-color:#f4a261;">
-        <span class="kpi-icon" style="color:#f4a261;"><i class="fas fa-clock"></i></span>
-        <div class="kpi-label">Pending</div>
+    <div class="kpi-card" style="border-left-color:var(--primary-light);">
+        <span class="kpi-icon" style="color:var(--primary-light);"><i class="fas fa-clock"></i></span>
+        <div class="kpi-label">Pending / Picking</div>
         <div class="kpi-value">@ViewBag.PendingCount</div>
-        <div class="kpi-change negative">Awaiting Approval</div>
+        <div class="kpi-change positive">Awaiting Fulfillment</div>
+    </div>
+    <div class="kpi-card" style="border-left-color:#28a745;">
+        <span class="kpi-icon" style="color:#28a745;"><i class="fas fa-check-circle"></i></span>
+        <div class="kpi-label">Delivered</div>
+        <div class="kpi-value">@ViewBag.DeliveredCount</div>
+        <div class="kpi-change positive">Completed</div>
     </div>
     <div class="kpi-card" style="border-left-color:var(--secondary);">
-        <span class="kpi-icon" style="color:var(--secondary);"><i class="fas fa-truck"></i></span>
-        <div class="kpi-label">In Transit</div>
-        <div class="kpi-value">@ViewBag.SentCount</div>
-        <div class="kpi-change positive">Sent / Shipped</div>
-    </div>
-    <div class="kpi-card" style="border-left-color:var(--primary-light);">
-        <span class="kpi-icon" style="color:var(--primary-light);"><i class="fas fa-money-bill-wave"></i></span>
+        <span class="kpi-icon" style="color:var(--secondary);"><i class="fas fa-chart-line"></i></span>
         <div class="kpi-label">Total Value</div>
-        <div class="kpi-value">₱@ViewBag.TotalValue.ToString("N0")</div>
-        <div class="kpi-change positive">Purchases</div>
+        <div class="kpi-value">₱@totalValue.ToString("N0")</div>
+        <div class="kpi-change positive">Order Value</div>
+    </div>
+</div>
+
+<!-- Outstanding KPI (secondary row) -->
+<div class="kpi-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));margin-top:-8px;">
+    <div class="kpi-card" style="border-left-color:#28a745;">
+        <span class="kpi-icon" style="color:#28a745;"><i class="fas fa-check-double"></i></span>
+        <div class="kpi-label">Paid</div>
+        <div class="kpi-value">₱@paidValue.ToString("N0")</div>
+        <div class="kpi-change positive">Settled</div>
+    </div>
+    <div class="kpi-card" style="border-left-color:#f4a261;">
+        <span class="kpi-icon" style="color:#f4a261;"><i class="fas fa-file-invoice-dollar"></i></span>
+        <div class="kpi-label">Outstanding</div>
+        <div class="kpi-value">₱@outstanding.ToString("N0")</div>
+        <div class="kpi-change negative">Receivable</div>
     </div>
 </div>
 
@@ -62,27 +82,33 @@
             <label style="font-size:13px;font-weight:600;display:block;margin-bottom:5px;">Search</label>
             <div class="input-wrapper">
                 <i class="fas fa-search icon"></i>
-                <input type="text" name="searchTerm" value="@ViewBag.SearchTerm" placeholder="Search PO number or supplier..." />
+                <input type="text" name="searchTerm" value="@ViewBag.SearchTerm" placeholder="Search by SO # or customer..." />
             </div>
         </div>
-        <div style="min-width:180px;">
+        <div style="min-width:160px;">
             <label style="font-size:13px;font-weight:600;display:block;margin-bottom:5px;">Status</label>
-            <div class="input-wrapper">
-                <i class="fas fa-filter icon"></i>
-                <select name="status">
-                    <option value="">All Statuses</option>
-                    <option value="Draft" selected="@(ViewBag.Status == "Draft")">Draft</option>
-                    <option value="Pending Approval" selected="@(ViewBag.Status == "Pending Approval")">Pending Approval</option>
-                    <option value="Sent" selected="@(ViewBag.Status == "Sent")">Sent</option>
-                    <option value="Shipped" selected="@(ViewBag.Status == "Shipped")">Shipped</option>
-                    <option value="Received" selected="@(ViewBag.Status == "Received")">Received</option>
-                    <option value="Cancelled" selected="@(ViewBag.Status == "Cancelled")">Cancelled</option>
-                </select>
-            </div>
+            <select name="status" style="width:100%;padding:8px 12px;border:1px solid #ddd;border-radius:6px;">
+                <option value="">All Statuses</option>
+                <option value="Pending" selected="@(ViewBag.Status == "Pending")">Pending</option>
+                <option value="Confirmed" selected="@(ViewBag.Status == "Confirmed")">Confirmed</option>
+                <option value="Picking" selected="@(ViewBag.Status == "Picking")">Picking</option>
+                <option value="Dispatched" selected="@(ViewBag.Status == "Dispatched")">Dispatched</option>
+                <option value="Delivered" selected="@(ViewBag.Status == "Delivered")">Delivered</option>
+                <option value="Cancelled" selected="@(ViewBag.Status == "Cancelled")">Cancelled</option>
+            </select>
+        </div>
+        <div style="min-width:160px;">
+            <label style="font-size:13px;font-weight:600;display:block;margin-bottom:5px;">Payment</label>
+            <select name="paymentStatus" style="width:100%;padding:8px 12px;border:1px solid #ddd;border-radius:6px;">
+                <option value="">All Payments</option>
+                <option value="Unpaid" selected="@(ViewBag.PaymentStatus == "Unpaid")">Unpaid</option>
+                <option value="Partial" selected="@(ViewBag.PaymentStatus == "Partial")">Partial</option>
+                <option value="Paid" selected="@(ViewBag.PaymentStatus == "Paid")">Paid</option>
+            </select>
         </div>
         <div style="display:flex;gap:8px;">
             <button type="submit" class="btn-add"><i class="fas fa-search"></i> Filter</button>
-            <a href="/PurchaseOrder" class="btn-back"><i class="fas fa-redo"></i> Reset</a>
+            <a href="/SalesOrder" class="btn-back"><i class="fas fa-redo"></i> Reset</a>
         </div>
     </form>
 </div>
@@ -93,50 +119,70 @@
         <table class="table-custom">
             <thead>
                 <tr>
-                    <th>PO Number</th>
-                    <th>Supplier</th>
+                    <th>SO #</th>
+                    <th>Customer</th>
                     <th>Order Date</th>
-                    <th>Expected Delivery</th>
-                    <th>Total Amount</th>
+                    <th>Required Delivery</th>
+                    <th>Total</th>
                     <th>Status</th>
+                    <th>Payment</th>
+                    <th>Sales Rep</th>
                     <th style="text-align:center;">Actions</th>
                 </tr>
             </thead>
             <tbody>
                 @if (orders.Any())
                 {
-                    foreach (var po in orders)
+                    foreach (var o in orders)
                     {
-                        var statusClass = po.Status switch
+                        var statusClass = o.Status switch
                         {
-                            "Draft" => "badge-status secondary",
-                            "Pending Approval" => "badge-status warning",
-                            "Sent" => "badge-status info",
-                            "Shipped" => "badge-status primary",
-                            "Received" => "badge-status active",
-                            "Cancelled" => "badge-status inactive",
-                            _ => "badge-status secondary"
+                            "Pending" => "warning",
+                            "Confirmed" => "info",
+                            "Picking" => "secondary",
+                            "Dispatched" => "secondary",
+                            "Delivered" => "active",
+                            "Cancelled" => "inactive",
+                            _ => "secondary"
                         };
+                        var payClass = o.PaymentStatus switch
+                        {
+                            "Paid" => "active",
+                            "Partial" => "warning",
+                            _ => "inactive"
+                        };
+
+                        bool canPay = o.PaymentStatus != "Paid" && o.Status != "Cancelled";
+                        bool canDelete = o.PaymentStatus == "Unpaid" && o.Status != "Delivered" && o.Status != "Cancelled";
+
                         <tr>
-                            <td><strong>@po.PONumber</strong></td>
-                            <td>@po.Supplier?.CompanyName</td>
-                            <td>@po.OrderDate.ToString("MMM dd, yyyy")</td>
-                            <td>@(po.DeliveryExpectedDate?.ToString("MMM dd, yyyy") ?? "-")</td>
-                            <td><strong>₱@(po.TotalAmount?.ToString("N2") ?? "0.00")</strong></td>
-                            <td><span class="@statusClass">@po.Status</span></td>
+                            <td><span class="badge-status info">@o.SONumber</span></td>
+                            <td><strong>@(o.Customer?.CompanyName ?? "-")</strong></td>
+                            <td>@o.OrderDate.ToString("MMM dd, yyyy")</td>
+                            <td>@(o.RequiredDeliveryDate?.ToString("MMM dd, yyyy") ?? "-")</td>
+                            <td><strong>₱@((o.TotalAmount ?? 0).ToString("N2"))</strong></td>
+                            <td><span class="badge-status @statusClass">@o.Status</span></td>
+                            <td><span class="badge-status @payClass">@o.PaymentStatus</span></td>
+                            <td>@(o.SalesRep?.FirstName ?? "-")</td>
                             <td style="text-align:center;white-space:nowrap;">
-                                <a href="/PurchaseOrder/Details/@po.Id" class="btn-add" style="padding:5px 10px;font-size:13px;background:#17a2b8;" title="View">
+                                <a href="/SalesOrder/Details/@o.Id" class="btn-add"
+                                   style="padding:5px 12px;font-size:13px;background:#17a2b8;" title="View">
                                     <i class="fas fa-eye"></i>
                                 </a>
-                                @if (po.Status == "Draft" || po.Status == "Pending Approval")
+                                @if (canPay)
                                 {
-                                    <a href="/PurchaseOrder/Edit/@po.Id" class="btn-add" style="padding:5px 10px;font-size:13px;background:#ffc107;color:#212529;" title="Edit">
-                                        <i class="fas fa-edit"></i>
+                                    <a href="/Payment/PayOnline/@o.Id" class="btn-add"
+                                       style="padding:5px 12px;font-size:13px;background:#28a745;" title="Pay Online">
+                                        <i class="fas fa-credit-card"></i>
                                     </a>
                                 }
-                                <a href="/PurchaseOrder/Delete/@po.Id" class="btn-add" style="padding:5px 10px;font-size:13px;background:#dc3545;" title="Delete">
-                                    <i class="fas fa-trash"></i>
-                                </a>
+                                @if (canDelete)
+                                {
+                                    <a href="/SalesOrder/Delete/@o.Id" class="btn-add"
+                                       style="padding:5px 12px;font-size:13px;background:#dc3545;" title="Delete">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                }
                             </td>
                         </tr>
                     }
@@ -144,13 +190,13 @@
                 else
                 {
                     <tr>
-                        <td colspan="7">
+                        <td colspan="9">
                             <div class="empty-state">
-                                <i class="fas fa-file-invoice"></i>
-                                <h4>No Purchase Orders</h4>
-                                <p>Click "Create PO" to start purchasing.</p>
-                                <a href="/PurchaseOrder/Create" class="btn-add" style="margin-top:12px;display:inline-flex;padding:8px 20px;font-size:13px;">
-                                    <i class="fas fa-plus"></i> Create First PO
+                                <i class="fas fa-shopping-cart"></i>
+                                <h4>No Sales Orders Found</h4>
+                                <p>Click "New Sales Order" to create your first order.</p>
+                                <a href="/SalesOrder/Create" class="btn-add" style="margin-top:12px;display:inline-flex;padding:8px 20px;font-size:13px;">
+                                    <i class="fas fa-plus"></i> New Sales Order
                                 </a>
                             </div>
                         </td>

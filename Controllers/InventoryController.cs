@@ -29,8 +29,8 @@ public class InventoryController : Controller
         // Search filter
         if (!string.IsNullOrEmpty(searchTerm))
         {
-            query = query.Where(i => 
-                i.ItemName.Contains(searchTerm) || 
+            query = query.Where(i =>
+                i.ItemName.Contains(searchTerm) ||
                 i.ItemCode.Contains(searchTerm));
         }
 
@@ -215,7 +215,7 @@ public class InventoryController : Controller
     }
 
     // ============================================
-    // ADJUST STOCK: Add/Remove/Transfer
+    // ADJUST STOCK: Show form
     // ============================================
     public async Task<IActionResult> AdjustStock(int id)
     {
@@ -226,12 +226,22 @@ public class InventoryController : Controller
         return View(new InventoryTransaction { InventoryItemId = id });
     }
 
+    // ============================================
+    // ADJUST STOCK: Save to database
+    // ============================================
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> AdjustStock(InventoryTransaction transaction)
     {
         var item = await _context.InventoryItems.FindAsync(transaction.InventoryItemId);
         if (item == null) return NotFound();
+
+        // ✅ FIX: Prevent EF from inserting an explicit value into the identity column.
+        // This is what caused: "Cannot insert explicit value for identity column
+        // in table 'InventoryTransactions' when IDENTITY_INSERT is set to OFF."
+        transaction.Id = 0;
+        transaction.InventoryItem = null;
+        transaction.PerformedByUser = null;
 
         if (ModelState.IsValid)
         {

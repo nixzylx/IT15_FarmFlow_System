@@ -1,0 +1,154 @@
+@model FarmFlow.Web.Models.Expense
+@{
+    ViewData["Title"] = $"Expense {Model.ExpenseNumber}";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var statusClass = Model.Status switch
+    {
+        "Pending" => "warning",
+        "Approved" => "active",
+        "Rejected" => "inactive",
+        "Paid" => "info",
+        _ => "secondary"
+    };
+    bool canApprove = Model.Status == "Pending" && User.IsInRole("Administrator");
+    bool canMarkPaid = Model.Status == "Approved";
+}
+
+<div class="page-header">
+    <div class="left">
+        <h1><span class="icon">🧾</span> @Model.ExpenseNumber</h1>
+    </div>
+    <div style="display:flex;gap:8px;">
+        @if (Model.Status != "Approved" && Model.Status != "Paid")
+        {
+            <a href="/Expense/Edit/@Model.Id" class="btn-add" style="background:#ffc107;color:#212529;">
+                <i class="fas fa-edit"></i> Edit
+            </a>
+        }
+        <a href="/Expense" class="btn-back"><i class="fas fa-arrow-left"></i> Back</a>
+    </div>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert-success-custom">
+        <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
+    </div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert-danger-custom">
+        <i class="fas fa-exclamation-circle"></i> @TempData["ErrorMessage"]
+    </div>
+}
+
+<!-- Approval Actions -->
+@if (canApprove)
+{
+    <div class="card-custom" style="padding:20px;margin-bottom:16px;border-left:4px solid #f4a261;">
+        <h3 style="margin-bottom:12px;font-size:15px;">
+            <i class="fas fa-gavel"></i> Approval Required
+        </h3>
+        <form method="post" style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">
+            @Html.AntiForgeryToken()
+            <div style="flex:1;min-width:240px;">
+                <label style="font-size:13px;font-weight:600;display:block;margin-bottom:5px;">Approval Notes (optional)</label>
+                <input type="text" name="approvalNotes" placeholder="Reason for approval/rejection..."
+                       style="width:100%;padding:8px 12px;border:1px solid #ddd;border-radius:6px;" />
+            </div>
+            <button type="submit" asp-action="Approve" asp-route-id="@Model.Id" class="btn-add"
+                    style="background:#28a745;"
+                    onclick="return confirm('Approve this expense?');">
+                <i class="fas fa-check"></i> Approve
+            </button>
+            <button type="submit" asp-action="Reject" asp-route-id="@Model.Id" class="btn-add"
+                    style="background:#dc3545;"
+                    onclick="return confirm('Reject this expense?');">
+                <i class="fas fa-times"></i> Reject
+            </button>
+        </form>
+    </div>
+}
+
+@if (canMarkPaid)
+{
+    <div class="card-custom" style="padding:20px;margin-bottom:16px;border-left:4px solid #28a745;">
+        <form asp-action="MarkPaid" asp-route-id="@Model.Id" method="post" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+            @Html.AntiForgeryToken()
+            <div>
+                <strong>Ready to Pay</strong>
+                <p style="margin:4px 0 0 0;font-size:13px;color:var(--text-muted);">
+                    This expense has been approved. Mark it as paid once settled.
+                </p>
+            </div>
+            <button type="submit" class="btn-add" style="background:#28a745;"
+                    onclick="return confirm('Mark this expense as Paid?');">
+                <i class="fas fa-money-bill-wave"></i> Mark as Paid
+            </button>
+        </form>
+    </div>
+}
+
+<!-- KPI Cards -->
+<div class="kpi-grid">
+    <div class="kpi-card">
+        <span class="kpi-icon"><i class="fas fa-money-bill-wave"></i></span>
+        <div class="kpi-label">Amount</div>
+        <div class="kpi-value">₱@Model.Amount.ToString("N0")</div>
+    </div>
+    <div class="kpi-card" style="border-left-color:var(--primary-light);">
+        <span class="kpi-icon" style="color:var(--primary-light);"><i class="fas fa-tag"></i></span>
+        <div class="kpi-label">Category</div>
+        <div class="kpi-value" style="font-size:18px;">@(Model.ExpenseCategory?.Name ?? "-")</div>
+    </div>
+    <div class="kpi-card" style="border-left-color:var(--secondary);">
+        <span class="kpi-icon" style="color:var(--secondary);"><i class="fas fa-calendar-alt"></i></span>
+        <div class="kpi-label">Date</div>
+        <div class="kpi-value" style="font-size:20px;">@Model.ExpenseDate.ToString("MMM dd, yyyy")</div>
+    </div>
+    <div class="kpi-card" style="border-left-color:#f4a261;">
+        <span class="kpi-icon" style="color:#f4a261;"><i class="fas fa-flag"></i></span>
+        <div class="kpi-label">Status</div>
+        <div class="kpi-value" style="font-size:18px;">
+            <span class="badge-status @statusClass">@Model.Status</span>
+        </div>
+    </div>
+</div>
+
+<!-- Expense Info -->
+<div class="card-custom" style="padding:24px;margin-bottom:16px;">
+    <h3 style="margin-bottom:16px;font-size:16px;">Expense Information</h3>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
+        <div><strong>Expense #:</strong> @Model.ExpenseNumber</div>
+        <div><strong>Category:</strong> @(Model.ExpenseCategory?.Name ?? "-")</div>
+        <div><strong>Amount:</strong> ₱@Model.Amount.ToString("N2")</div>
+        <div><strong>Vendor:</strong> @(string.IsNullOrEmpty(Model.Vendor) ? "-" : Model.Vendor)</div>
+        <div><strong>Reference #:</strong> @(string.IsNullOrEmpty(Model.ReferenceNumber) ? "-" : Model.ReferenceNumber)</div>
+        <div><strong>Farm:</strong> @(Model.Farm?.FarmName ?? "-")</div>
+        <div><strong>Production Batch:</strong> @(Model.ProductionBatch?.BatchCode ?? "-")</div>
+        <div><strong>Created By:</strong> @(Model.CreatedByUser != null ? $"{Model.CreatedByUser.FirstName} {Model.CreatedByUser.LastName}" : "-")</div>
+        <div><strong>Created:</strong> @Model.CreatedDateTime.ToString("MMM dd, yyyy hh:mm tt")</div>
+        <div style="grid-column:1/-1;">
+            <strong>Description:</strong> @(string.IsNullOrEmpty(Model.Description) ? "-" : Model.Description)
+        </div>
+    </div>
+</div>
+
+<!-- Approval Info -->
+@if (Model.Status == "Approved" || Model.Status == "Rejected" || Model.Status == "Paid")
+{
+    <div class="card-custom" style="padding:24px;">
+        <h3 style="margin-bottom:16px;font-size:16px;">Approval Details</h3>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
+            <div><strong>Approved By:</strong> @(Model.ApprovedByUser != null ? $"{Model.ApprovedByUser.FirstName} {Model.ApprovedByUser.LastName}" : "-")</div>
+            <div><strong>Approved On:</strong> @(Model.ApprovedDate?.ToString("MMM dd, yyyy hh:mm tt") ?? "-")</div>
+            <div><strong>Status:</strong> @Model.Status</div>
+            @if (!string.IsNullOrEmpty(Model.ApprovalNotes))
+            {
+                <div style="grid-column:1/-1;">
+                    <strong>Notes:</strong> @Model.ApprovalNotes
+                </div>
+            }
+        </div>
+    </div>
+}

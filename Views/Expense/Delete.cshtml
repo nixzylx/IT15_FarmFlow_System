@@ -1,0 +1,66 @@
+@model FarmFlow.Web.Models.Expense
+@{
+    ViewData["Title"] = "Delete Expense";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    bool isLocked = Model.Status == "Approved" || Model.Status == "Paid";
+}
+
+<div class="page-header">
+    <div class="left">
+        <h1><span class="icon">⚠️</span> Delete Expense</h1>
+    </div>
+    <a href="/Expense" class="btn-back">
+        <i class="fas fa-arrow-left"></i> Back to List
+    </a>
+</div>
+
+<div class="card-custom" style="padding:24px;max-width:640px;">
+    @if (isLocked)
+    {
+        <div class="alert-danger-custom" style="margin-bottom:20px;">
+            <i class="fas fa-ban"></i>
+            <div>
+                <strong>Cannot Delete</strong>
+                <p style="margin:4px 0 0 0;font-size:13px;">
+                    This expense has status <strong>@Model.Status</strong>.
+                    Approved and paid expenses cannot be deleted to preserve the audit trail.
+                </p>
+            </div>
+        </div>
+
+        <a href="/Expense/Details/@Model.Id" class="btn-back">
+            <i class="fas fa-arrow-left"></i> Back to Details
+        </a>
+    }
+    else
+    {
+        <div class="alert-danger-custom" style="background:#fff3cd;color:#856404;margin-bottom:20px;">
+            <i class="fas fa-exclamation-triangle"></i>
+            <div><strong>Warning:</strong> This action cannot be undone.</div>
+        </div>
+
+        <p style="font-size:15px;margin-bottom:16px;">Are you sure you want to delete this expense?</p>
+
+        <div style="background:#f8f9fa;padding:16px;border-radius:8px;margin-bottom:20px;">
+            <div style="margin-bottom:6px;"><strong>Expense #:</strong> @Model.ExpenseNumber</div>
+            <div style="margin-bottom:6px;"><strong>Category:</strong> @(Model.ExpenseCategory?.Name ?? "-")</div>
+            <div style="margin-bottom:6px;"><strong>Amount:</strong> ₱@Model.Amount.ToString("N2")</div>
+            <div style="margin-bottom:6px;"><strong>Vendor:</strong> @(Model.Vendor ?? "-")</div>
+            <div><strong>Status:</strong> @Model.Status</div>
+        </div>
+
+        <form asp-action="Delete" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Id" />
+            <div style="display:flex;gap:10px;">
+                <button type="submit" class="btn-add" style="background:#dc3545;"
+                        onclick="return confirm('Permanently delete this expense?');">
+                    <i class="fas fa-trash"></i> Confirm Delete
+                </button>
+                <a href="/Expense" class="btn-back">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
+            </div>
+        </form>
+    }
+</div>
