@@ -626,12 +626,12 @@
         <div class="user-info">
             <span class="user-name"><i class="fas fa-user-circle"></i> @User.Identity?.Name</span>
             <span class="role-badge">@userRole</span>
-            <form method="post" action="/Auth/Logout" class="d-inline">
-                @Html.AntiForgeryToken()
-                <button type="submit" class="btn-logout">
-                    <i class="fas fa-sign-out-alt"></i> Logout
-                </button>
-            </form>
+            <form method="post" action="/Auth/Logout" class="d-inline" id="logoutForm">
+    @Html.AntiForgeryToken()
+    <button type="button" class="btn-logout" id="logoutBtn">
+        <i class="fas fa-sign-out-alt"></i> Logout
+    </button>
+</form>
         </div>
     </header>
 
@@ -779,6 +779,136 @@
             }
         }
         window.addEventListener('resize', handleResize);
+
+        document.addEventListener('DOMContentLoaded', function () {
+        const logoutBtn = document.getElementById('logoutBtn');
+        const logoutForm = document.getElementById('logoutForm');
+
+        if (logoutBtn && logoutForm) {
+            logoutBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+
+                // Use a native confirm for now — replace with a custom modal if you want
+                if (confirm('Are you sure you want to log out?')) {
+                    logoutForm.submit();
+                }
+            });
+        }
+    });
+    document.addEventListener('DOMContentLoaded', function () {
+        const logoutBtn = document.getElementById('logoutBtn');
+        const logoutForm = document.getElementById('logoutForm');
+        const logoutModal = document.getElementById('logoutModal');
+        const logoutCancel = document.getElementById('logoutCancel');
+        const logoutConfirm = document.getElementById('logoutConfirm');
+
+        if (!logoutBtn || !logoutForm || !logoutModal) return;
+
+        logoutBtn.addEventListener('click', () => {
+            logoutModal.style.display = 'flex';
+        });
+
+        logoutCancel.addEventListener('click', () => {
+            logoutModal.style.display = 'none';
+        });
+
+        logoutConfirm.addEventListener('click', () => {
+            logoutForm.submit();
+        });
+
+        // Close on ESC
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && logoutModal.style.display === 'flex') {
+                logoutModal.style.display = 'none';
+            }
+        });
+    });
+    // ============================================================
+    // GLOBAL TABLE PAGINATION
+    // ============================================================
+    document.addEventListener('DOMContentLoaded', function () {
+        const table = document.querySelector('.table-custom');
+        if (!table) return;
+
+        const tbody = table.querySelector('tbody');
+        if (!tbody) return;
+
+        const allRows = Array.from(tbody.querySelectorAll('tr'));
+
+        // Don't paginate empty-state rows
+        if (allRows.length === 0 || allRows[0].querySelector('.empty-state')) return;
+
+        const ROWS_PER_PAGE = 10;
+        let currentPage = 1;
+
+        // Create pager container
+        const pager = document.createElement('div');
+        pager.className = 'table-pager';
+        pager.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-top:1px solid #f0f4f0;';
+
+        const info = document.createElement('div');
+        info.style.cssText = 'font-size:13px;color:var(--text-muted);';
+
+        const controls = document.createElement('div');
+        controls.style.cssText = 'display:flex;gap:6px;align-items:center;';
+
+        pager.appendChild(info);
+        pager.appendChild(controls);
+
+        // Insert pager after the table
+        table.parentNode.appendChild(pager);
+
+        function renderPage(page) {
+            const totalPages = Math.ceil(allRows.length / ROWS_PER_PAGE);
+            currentPage = Math.max(1, Math.min(page, totalPages));
+
+            allRows.forEach((row, i) => {
+                const start = (currentPage - 1) * ROWS_PER_PAGE;
+                const end = start + ROWS_PER_PAGE;
+                row.style.display = (i >= start && i < end) ? '' : 'none';
+            });
+
+            // Update info
+            const start = (currentPage - 1) * ROWS_PER_PAGE + 1;
+            const end = Math.min(currentPage * ROWS_PER_PAGE, allRows.length);
+            info.textContent = `Showing ${start}–${end} of ${allRows.length}`;
+
+            // Rebuild controls
+            controls.innerHTML = '';
+
+            const mkBtn = (label, target, disabled) => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.innerHTML = label;
+                btn.disabled = disabled;
+                btn.style.cssText = `
+                    padding:6px 12px;border-radius:6px;border:1px solid #ddd;background:white;
+                    cursor:${disabled ? 'not-allowed' : 'pointer'};font-size:13px;
+                    color:${disabled ? '#bbb' : 'var(--text-dark)'};font-family:Roboto,sans-serif;
+                `;
+                if (!disabled) {
+                    btn.onmouseover = () => btn.style.background = '#f8faf8';
+                    btn.onmouseout = () => btn.style.background = 'white';
+                    btn.onclick = () => renderPage(target);
+                }
+                return btn;
+            };
+
+            controls.appendChild(mkBtn('<i class="fas fa-angle-double-left"></i>', 1, currentPage === 1));
+            controls.appendChild(mkBtn('<i class="fas fa-angle-left"></i>', currentPage - 1, currentPage === 1));
+
+            // Page indicator
+            const pageLabel = document.createElement('span');
+            pageLabel.textContent = `Page ${currentPage} of ${totalPages}`;
+            pageLabel.style.cssText = 'padding:0 10px;font-size:13px;font-weight:600;';
+            controls.appendChild(pageLabel);
+
+            controls.appendChild(mkBtn('<i class="fas fa-angle-right"></i>', currentPage + 1, currentPage === totalPages));
+            controls.appendChild(mkBtn('<i class="fas fa-angle-double-right"></i>', totalPages, currentPage === totalPages));
+        }
+
+        renderPage(1);
+    });
     </script>
 
     @await RenderSectionAsync("Scripts", required: false)
